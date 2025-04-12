@@ -1,16 +1,16 @@
 from src.domain.validators import ReservationValidator
-from src.repository.text_file_repository import TextFileRepository
+from src.repository.reservation_repository_textfile import TextFileRepository
 
 
 
 class Service:
-    def __init__(self, reservationRepository, reservationValidator):
+    def __init__(self, reservationRepository):
         self.__repository = reservationRepository
-        self.__validator = reservationValidator
         self.__rooms = {'01': 1, '02': 2, '03': 2, '04': 4, '05': 4}
 
     def create(self, reservation):
-        # self.__validator.validate(reservation)
+        validator = ReservationValidator()
+        validator.validate(reservation)
         reservation.number = self.__repository.getAvailableNumber()
         print(reservation)
         if reservation.guestNumber > self.__rooms[reservation.room]:
