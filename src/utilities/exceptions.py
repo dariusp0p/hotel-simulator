@@ -1,10 +1,16 @@
 class ApplicationException(Exception):
     pass
 
+class ValidationError(ApplicationException):
+    pass
+
 class RepositoryError(ApplicationException):
     pass
 
-class ValidationError(ApplicationException):
+class ServiceError(ApplicationException):
+    pass
+
+class ActionError(ApplicationException):
     pass
 
 class InputError(ApplicationException):

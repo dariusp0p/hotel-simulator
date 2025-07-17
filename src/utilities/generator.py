@@ -76,7 +76,7 @@ def generateReservations(n, room, capacity):
 
 if __name__ == "__main__":
 
-    rooms = readRooms("../data/rooms.txt")
+    rooms = readRooms("../../data/rooms.txt")
     reservations = []
     for room, capacity in rooms.items():
         roomRes = generateReservations(41, room, capacity)
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     print(reservations)
 
     try:
-        fout = open("../data/reservations.txt", "w")
+        fout = open("../../data/reservations.txt", "w")
         for reservation in reservations:
             dates = reservation[4].split(",")
             resLine = f'{reservation[0]},{reservation[1]},{reservation[2]},{reservation[3]},{dates[0]},{dates[1]}\n'

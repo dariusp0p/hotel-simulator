@@ -1,16 +1,28 @@
-from src.exceptions import ValidationError
-
 from datetime import date
 
 
 
 class Reservation:
-    def __init__(self, room_number, guest_name, guest_number, arrival_date, departure_date):
+    def __init__(self, db_id=None, reservation_id=None, room_number=None, guest_name=None, number_of_guests=None, check_in_date=None, check_out_date=None):
+        self.__db_id = db_id
+        self.__reservation_id = reservation_id
         self.__room_number = room_number
         self.__guest_name = guest_name
-        self.__guest_number = guest_number
-        self.__arrival_date = arrival_date
-        self.__departure_date = departure_date
+        self.__number_of_guests = number_of_guests
+        self.__check_in_date = check_in_date
+        self.__check_out_date = check_out_date
+
+
+    @property
+    def db_id(self):
+        return self.__db_id
+    @db_id.setter
+    def db_id(self, value):
+        self.__db_id = value
+
+    @property
+    def reservation_id(self):
+        return self.__reservation_id
 
 
     @property
@@ -22,31 +34,31 @@ class Reservation:
         return self.__guest_name
 
     @property
-    def guest_number(self):
-        return self.__guest_number
+    def number_of_guests(self):
+        return self.__number_of_guests
 
     @property
-    def arrival_date(self):
-        return self.__arrival_date
+    def check_in_date(self):
+        return self.__check_in_date
 
     @property
-    def departure_date(self):
-        return self.__departure_date
+    def check_out_date(self):
+        return self.__check_out_date
 
 
     def __str__(self):
-        return f'Room: {self.__room_number} | Guest name: {self.__guest_name} | Guest number: {self.__guest_number} | Arrival: {self.__arrival_date} | Departure: {self.__departure_date}'
+        return f'Room: {self.__room_number} | Guest name: {self.__guest_name} | Number of guests: {self.__number_of_guests} | Check-in: {self.__check_in_date} | Check-out: {self.__check_out_date}'
 
 
-    def validate(self):
+    def validate(self) -> list:
         errors = []
-        if not isinstance(self.room_number, str):
+        if not isinstance(self.__room_number, str):
             errors.append("Invalid room!")
-        if not isinstance(self.guest_number, int):
+        if not isinstance(self.__number_of_guests, int):
             errors.append("Invalid guest number!")
-        if not isinstance(self.arrival_date, date) or not isinstance(self.departure_date, date):
+        if not isinstance(self.__check_in_date, date) or not isinstance(self.__check_out_date, date):
             errors.append("Invalid dates!")
-        if self.arrival_date > self.departure_date:
+        if self.__check_in_date > self.__check_out_date:
             errors.append("Invalid dates!")
         if len(errors) > 0:
-            raise ValidationError(errors)
+            return errors

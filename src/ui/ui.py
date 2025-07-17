@@ -1,4 +1,4 @@
-from src.exceptions import ApplicationException, InputError
+from src.utilities.exceptions import ApplicationException
 from src.domain.reservation import Reservation
 from datetime import datetime
 from texttable import Texttable

@@ -1,6 +1,6 @@
-from src.repository.reservation_repository_memory import ReservationRepositoryMemory
+from src.repository.reservation_repository import ReservationRepositoryMemory
 from src.domain.reservation import Reservation
-from src.exceptions import RepositoryError
+from src.utilities.exceptions import RepositoryError
 
 import pytest
 from datetime import date

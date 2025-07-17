@@ -1,7 +1,3 @@
-from src.exceptions import ValidationError
-
-
-
 class Room:
     def __init__(self, number, capacity):
         self.__number = number
@@ -21,11 +17,11 @@ class Room:
         return f'Number: {self.__number} | Capacity: {self.__capacity}'
 
 
-    def validate(self):
+    def validate(self) -> list:
         errors = []
         if not isinstance(self.__number, str):
             errors.append("Invalid room number!")
         if not isinstance(self.__capacity, int):
             errors.append("Invalid capacity!")
         if len(errors) > 0:
-            raise ValidationError(errors)
+            return errors

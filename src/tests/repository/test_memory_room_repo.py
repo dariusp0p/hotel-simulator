@@ -1,6 +1,6 @@
-from src.repository.room_repository_memory import RoomRepositoryMemory
+from src.repository.room_repository import RoomRepositoryMemory
 from src.domain.room import Room
-from src.exceptions import RepositoryError
+from src.utilities.exceptions import RepositoryError
 
 import pytest
 
