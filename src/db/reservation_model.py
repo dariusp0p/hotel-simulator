@@ -2,7 +2,7 @@ import sqlite3
 
 
 
-def create_reservation_table(connection):
+def create_reservation_model(connection):
     cursor = connection.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservations (

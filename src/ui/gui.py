@@ -1,65 +1,78 @@
-import tkinter as tk
-import calendar
-from datetime import datetime
+from PyQt6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QFormLayout, QLineEdit,
+    QPushButton, QTextEdit, QMessageBox
+)
+from src.service.reservation_service import ReservationService
+from src.utilities.exceptions import ValidationError
 
-class CalendarApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Calendar")
 
-        self.current_year = datetime.now().year
-        self.current_month = datetime.now().month
+class MainWindow(QMainWindow):
+    def __init__(self, reservation_service: ReservationService):
+        super().__init__()
+        self.service = reservation_service
+        self.init_ui()
 
-        self.header = tk.Label(root, text="", font=("Arial", 16))
-        self.header.pack(pady=10)
+    def init_ui(self):
+        self.setWindowTitle("Hotel Reservation System")
+        central_widget = QWidget()
+        main_layout = QVBoxLayout()
 
-        self.calendar_frame = tk.Frame(root)
-        self.calendar_frame.pack()
+        form_layout = QFormLayout()
 
-        nav_frame = tk.Frame(root)
-        nav_frame.pack(pady=5)
+        self.guest_name_input = QLineEdit()
+        self.room_number_input = QLineEdit()
+        self.number_of_guests_input = QLineEdit()
+        self.check_in_input = QLineEdit()
+        self.check_out_input = QLineEdit()
 
-        tk.Button(nav_frame, text="< Prev", command=self.prev_month).pack(side=tk.LEFT, padx=10)
-        tk.Button(nav_frame, text="Next >", command=self.next_month).pack(side=tk.RIGHT, padx=10)
+        self.check_in_input.setPlaceholderText("YYYY-MM-DD")
+        self.check_out_input.setPlaceholderText("YYYY-MM-DD")
 
-        self.draw_calendar()
+        form_layout.addRow("Guest Name:", self.guest_name_input)
+        form_layout.addRow("Room Number:", self.room_number_input)
+        form_layout.addRow("Number of Guests:", self.number_of_guests_input)
+        form_layout.addRow("Check-in Date:", self.check_in_input)
+        form_layout.addRow("Check-out Date:", self.check_out_input)
 
-    def draw_calendar(self):
-        # Clear previous calendar
-        for widget in self.calendar_frame.winfo_children():
-            widget.destroy()
+        self.add_button = QPushButton("Make Reservation")
+        self.add_button.clicked.connect(self.handle_add_reservation)
 
-        # Update header
-        self.header.config(text=f"{calendar.month_name[self.current_month]} {self.current_year}")
+        self.show_button = QPushButton("Show All Reservations")
+        self.show_button.clicked.connect(self.show_all_reservations)
 
-        # Weekday labels
-        days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        for i, day in enumerate(days):
-            tk.Label(self.calendar_frame, text=day, font=("Arial", 10, "bold"), padx=10).grid(row=0, column=i)
+        self.reservations_display = QTextEdit()
+        self.reservations_display.setReadOnly(True)
 
-        # Calendar data
-        month_calendar = calendar.monthcalendar(self.current_year, self.current_month)
+        main_layout.addLayout(form_layout)
+        main_layout.addWidget(self.add_button)
+        main_layout.addWidget(self.show_button)
+        main_layout.addWidget(self.reservations_display)
 
-        for r, week in enumerate(month_calendar, start=1):
-            for c, day in enumerate(week):
-                text = str(day) if day != 0 else ""
-                tk.Label(self.calendar_frame, text=text, padx=10, pady=5).grid(row=r, column=c)
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
 
-    def prev_month(self):
-        self.current_month -= 1
-        if self.current_month == 0:
-            self.current_month = 12
-            self.current_year -= 1
-        self.draw_calendar()
+    def handle_add_reservation(self):
+        data = {
+            'guest_name': self.guest_name_input.text(),
+            'room_number': self.room_number_input.text(),
+            'number_of_guests': int(self.number_of_guests_input.text()),
+            'check_in_date': self.check_in_input.text(),
+            'check_out_date': self.check_out_input.text(),
+        }
+        try:
+            self.service.make_reservation(data)
+            QMessageBox.information(self, "Success", "Reservation created successfully.")
+            self.show_all_reservations()
+        except ValidationError as ve:
+            QMessageBox.warning(self, "Validation Error", str(ve))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
 
-    def next_month(self):
-        self.current_month += 1
-        if self.current_month == 13:
-            self.current_month = 1
-            self.current_year += 1
-        self.draw_calendar()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = CalendarApp(root)
-    root.mainloop()
+    def show_all_reservations(self):
+        self.reservations_display.clear()
+        reservations = self.service.get_all_reservations()
+        for r in reservations:
+            self.reservations_display.append(
+                f"{r.reservation_id}: {r.guest_name}, Room {r.room_number}, "
+                f"{r.check_in_date} to {r.check_out_date}, Guests: {r.number_of_guests}"
+            )

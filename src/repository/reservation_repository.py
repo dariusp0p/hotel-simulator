@@ -27,16 +27,14 @@ class ReservationRepository:
     def load_from_db(self):
         reservations = db.get_all_reservations(self.__connection)
         for row in reservations:
-            check_in_date = datetime.strptime(row[5], "%Y-%m-%d").date()
-            check_out_date = datetime.strptime(row[6], "%Y-%m-%d").date()
             reservation = Reservation(
                 db_id=row[0],
                 reservation_id=row[1],
                 room_number=row[2],
                 guest_name=row[3],
                 number_of_guests=row[4],
-                check_in_date=check_in_date,
-                check_out_date=check_out_date,
+                check_in_date=datetime.strptime(row[5], "%Y-%m-%d").date(),
+                check_out_date=datetime.strptime(row[6], "%Y-%m-%d").date(),
             )
             self.add_to_cache(reservation)
 
