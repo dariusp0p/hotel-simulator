@@ -1,8 +1,9 @@
+import sqlite3
+from datetime import datetime
+
 from src.utilities.exceptions import (ReservationAlreadyExistsError, ReservationNotFoundError, DatabaseUnavailableError)
 from src.domain.reservation import Reservation
 from src.db import reservation_model as db
-from datetime import datetime
-import sqlite3
 
 
 
@@ -16,6 +17,11 @@ class ReservationRepository:
         self.__by_guest_name = {}
 
         self.load_from_db()
+
+
+    @property
+    def connection(self):
+        return self.__connection
 
 
     def load_from_db(self):

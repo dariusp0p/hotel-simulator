@@ -1,23 +1,21 @@
-from .db_connection import get_connection
 import sqlite3
 
 
 
-def create_reservation_table():
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS reservations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                reservation_id TEXT UNIQUE NOT NULL, 
-                room_number TEXT NOT NULL, 
-                guest_name TEXT NOT NULL, 
-                number_of_guests INTEGER NOT NULL, 
-                check_in_date TEXT NOT NULL, 
-                check_out_date TEXT NOT NULL
-            )
-        """)
-        conn.commit()
+def create_reservation_table(connection):
+    cursor = connection.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reservations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            reservation_id TEXT UNIQUE NOT NULL, 
+            room_number TEXT NOT NULL, 
+            guest_name TEXT NOT NULL, 
+            number_of_guests INTEGER NOT NULL, 
+            check_in_date TEXT NOT NULL, 
+            check_out_date TEXT NOT NULL
+        )
+    """)
+    connection.commit()
 
 
 def add_reservation(connection, reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date):
