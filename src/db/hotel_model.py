@@ -6,26 +6,20 @@ def create_hotel_model(connection):
     cursor = connection.cursor()
     cursor.executescript("""
         CREATE TABLE IF NOT EXISTS floors (
-            name TEXT PRIMARY KEY
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS elements (
-            element_id TEXT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            element_id TEXT UNIQUE NOT NULL,
             element_type TEXT,
-            floor_name TEXT,
+            floor_id INTEGER,
             capacity INTEGER,
             x INTEGER,
             y INTEGER,
-            FOREIGN KEY (floor_name) REFERENCES floors(name)
+            FOREIGN KEY (floor_id) REFERENCES floors(id)
         );
-
-        CREATE TABLE IF NOT EXISTS connections (
-            id1 TEXT,
-            id2 TEXT,
-            PRIMARY KEY (id1, id2),
-            FOREIGN KEY (id1) REFERENCES elements(element_id),
-            FOREIGN KEY (id2) REFERENCES elements(element_id)
-        )
     """)
     connection.commit()
 
@@ -41,12 +35,66 @@ def get_all_floors(connection):
     except sqlite3.OperationalError as e:
         raise e
 
-def get_elements_from_floor(connection, floor_name):
+def get_floor_id(connection, floor_name):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT * FROM elements WHERE floor_name=?
+            SELECT id FROM floors WHERE name = ?
         """, (floor_name,))
+        return cursor.fetchone()[0]
+    except sqlite3.OperationalError as e:
+        raise e
+
+def get_elements_by_floor_id(connection, id):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT * FROM elements WHERE id=?
+        """, (id,))
+        return cursor.fetchall()
+    except sqlite3.OperationalError as e:
+        raise e
+
+def add_floor(connection, floor_name):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO floors (floor_name=?)
+        """, (floor_name,))
+        connection.commit()
+    except sqlite3.IntegrityError as e:
+        raise e
+    except sqlite3.OperationalError as e:
+        raise e
+
+def get_floor_by_name(connection, floor_name):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT * FROM floors WHERE floor_name=?
+        """, (floor_name,))
+        return cursor.fetchall()
+    except sqlite3.OperationalError as e:
+        raise e
+
+def add_element(connection, element_id, element_type, floor_id, capacity, x, y):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO elements (element_id=?, element_type=?, floor_id=?, capacity=?, x=?, y=?)
+            """, (element_id, element_type, floor_id, capacity, x, y))
+        cursor.commit()
+    except sqlite3.IntegrityError as e:
+        raise e
+    except sqlite3.OperationalError as e:
+        raise e
+
+def get_element_by_element_id(connection, element_id):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT * FROM elements WHERE element_id=?
+        """, (element_id,))
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
         raise e

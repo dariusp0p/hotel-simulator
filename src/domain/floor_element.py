@@ -1,12 +1,20 @@
 class FloorElement:
-    def __init__(self, element_id=None, element_type=None, floor_name=None, capacity=None, position=None, connections=None):
+    def __init__(self, db_id=None, element_id=None, element_type=None, floor_id=None, capacity=None, position=None, connections=None):
+        self.__db_id = db_id
         self.__element_id = element_id
         self.__element_type = element_type
-        self.__floor_name = floor_name
+        self.__floor_id = floor_id
         self.__capacity = capacity
         self.__position = position
         self.__connections = connections
 
+
+    @property
+    def db_id(self):
+        return self.__db_id
+    @db_id.setter
+    def db_id(self, db_id):
+        self.__db_id = db_id
 
     @property
     def element_id(self):
@@ -17,8 +25,11 @@ class FloorElement:
         return self.__element_type
 
     @property
-    def floor_name(self):
-        return self.__floor_name
+    def floor_id(self):
+        return self.__floor_id
+    @floor_id.setter
+    def floor_id(self, floor_id):
+        self.__floor_id = floor_id
 
     @property
     def capacity(self):
@@ -36,18 +47,6 @@ class FloorElement:
     def connections(self):
         return self.__connections
 
-
-    def is_neighbor(self, pos1, pos2):
-        x1, y1 = pos1
-        x2, y2 = pos2
-        return abs(x1 - x2) + abs(y1 - y2) == 1
-
-
-    def can_connect_to(self, other):
-        if self.__element_type == 'room':
-            return other.element_type in {'hallway', 'staircase'} and self.is_neighbor(self.__position, other.position) and len(self.__connections) < 1
-        elif self.__element_type == 'hallway' and self.is_neighbor(other.position, self.__position):
-            return len(self.__connections) < 4
-        elif self.__element_type == 'staircase' and (self.is_neighbor(other.position, self.__position) or self.floor_name != other.floor_name):
-            return len(self.__connections) < 6
-        return False
+    # TODO
+    def validate(self) -> list:
+        pass

@@ -10,8 +10,7 @@ class HotelRepository:
     def __init__(self, connection):
         self.__connection = connection
 
-        self.__floors = {} # key: floor name | value: floor object
-        # floor object: - set of FloorElement objects - key: coordinates | value: FloorElement object
+        self.__floors = {}
 
         self.load_from_db()
 
@@ -21,135 +20,67 @@ class HotelRepository:
         return self.__connection
 
 
+
+    def get_floors(self):
+        return self.__floors.keys()
+
+    def get_floor_grid(self, floor_name):
+        return self.__floors[floor_name].grid
+
+    def get_floor_id(self, floor_name):
+        return db.get_floor_id(self.__connection, floor_name)
+
+
     def load_from_db(self):
         floors = db.get_all_floors(self.__connection)
 
-        for floor in floors:
-            floor_obj = Floor(floor)
-            elements = db.get_elements_from_floor(self.__connection, floor)
+        for db_id, floor_name in floors:
+            floor_obj = Floor(db_id, floor_name)
+            elements = db.get_elements_by_floor_id(self.__connection, db_id)
             for row in elements:
                 floor_element = FloorElement(
-                    element_id=row[0],
-                    element_type=row[1],
-                    floor_name=row[2],
-                    capacity=row[3],
-                    position=(row[4], row[5])
+                    db_id=row[0],
+                    element_id=row[1],
+                    element_type=row[2],
+                    floor_id=row[3],
+                    capacity=row[4],
+                    position=(row[5], row[6])
                 )
-                floor_obj.add_element(floor_element)
-            self.__floors[floor] = floor_obj
+                floor_obj.load_element(floor_element)
+            self.__floors[floor_name] = floor_obj
 
 
-
-    def save(self, hotel: Hotel):
-        db.save_hotel(self.__connection, hotel)
-
-    def get(self, hotel_name="Default Hotel") -> Hotel:
-        return db.load_hotel(self.__connection, hotel_name)
-
-    def delete(self, hotel_name):
-        db.delete_hotel(self.__connection, hotel_name)
-
-
-
-
-
-
-
-
-
-    def add_to_cache(self, reservation: Reservation):
-        self.__by_db_id[reservation.db_id] = reservation
-        self.__by_reservation_id[reservation.reservation_id] = reservation
-
-        if reservation.room_number not in self.__by_room_number:
-            self.__by_room_number[reservation.room_number] = []
-        self.__by_room_number[reservation.room_number].append(reservation)
-
-        if reservation.guest_name not in self.__by_guest_name:
-            self.__by_guest_name[reservation.guest_name] = []
-        self.__by_guest_name[reservation.guest_name].append(reservation)
-
-    def remove_from_cache(self, reservation: Reservation):
-        self.__by_db_id.pop(reservation.db_id, None)
-        self.__by_reservation_id.pop(reservation.reservation_id, None)
-
-        if reservation.room_number in self.__by_room_number:
-            try:
-                self.__by_room_number[reservation.room_number].remove(reservation)
-                if not self.__by_room_number[reservation.room_number]:
-                    del self.__by_room_number[reservation.room_number]
-            except ValueError:
-                pass
-
-        if reservation.guest_name in self.__by_guest_name:
-            try:
-                self.__by_guest_name[reservation.guest_name].remove(reservation)
-                if not self.__by_guest_name[reservation.guest_name]:
-                    del self.__by_guest_name[reservation.guest_name]
-            except ValueError:
-                pass
-
-
-    def add_reservation(self, reservation: Reservation):
+    def add_floor(self, floor):
+        if floor in self.__floors:
+            raise Exception('Floor already exists')
         try:
-            db.add_reservation(
-                self.__connection,
-                reservation.reservation_id,
-                reservation.room_number,
-                reservation.guest_name,
-                reservation.number_of_guests,
-                reservation.check_in_date.isoformat(),
-                reservation.check_out_date.isoformat(),
-            )
-
-            new_db_row = db.get_reservation_by_reservation_id(self.__connection, reservation.reservation_id)
-            reservation.db_id = new_db_row[0]
-            self.add_to_cache(reservation)
+            db.add_floor(self.__connection, floor.name)
+            new_db_row = db.get_floor_by_name(self.__connection, floor.name)
+            floor.db_id = new_db_row[0]
+            self.__floors[floor.db_id] = floor
         except sqlite3.IntegrityError:
-            raise ReservationAlreadyExistsError(f"Reservation with id {reservation.reservation_id} already exists.")
+            raise Exception(f"NONO")
         except sqlite3.OperationalError:
-            raise DatabaseUnavailableError("Database is unavailable or corrupted.")
+            raise Exception("Database is unavailable or corrupted.")
 
-    def get_all_reservations(self):
-        return list(self.__by_reservation_id.values())
-
-    def get_by_reservation_id(self, reservation_id):
-        return self.__by_reservation_id.get(reservation_id)
-
-    def get_by_room_number(self, room_nr):
-        return self.__by_room_number.get(room_nr)
-
-    def get_by_guest_name(self, guest_name):
-        return self.__by_guest_name.get(guest_name)
-
-
-    def update_reservation(self, reservation: Reservation):
-        old_reservation = self.__by_reservation_id.get(reservation.reservation_id)
-        if old_reservation is None:
-            raise ReservationNotFoundError(f"Reservation with id {reservation.reservation_id} does not exist.")
+    def add_element(self, element):
+        if element.element_id in self.__floors[element.floor_id].elements:
+            raise Exception('Element already exists')
         try:
-            db.update_reservation(
+            db.add_element(
                 self.__connection,
-                reservation.db_id,
-                reservation.reservation_id,
-                reservation.room_number,
-                reservation.guest_name,
-                reservation.number_of_guests,
-                reservation.check_in_date.isoformat(),
-                reservation.check_out_date.isoformat(),
+                element.element_id,
+                element.element_type,
+                element.floor_id,
+                element.capacity,
+                element.position[0],
+                element.position[1]
             )
-            self.remove_from_cache(old_reservation)
-            self.add_to_cache(reservation)
+            new_db_row = db.get_element_by_element_id(self.__connection, element.element_id)
+            element.db_id = new_db_row[0]
+            self.__floors[element.floor_id].load_element(element)
+        except sqlite3.IntegrityError:
+            raise Exception(f"Element with id {element.element_id} already exists.")
         except sqlite3.OperationalError:
-            raise DatabaseUnavailableError("Database is unavailable or corrupted.")
+            raise Exception("Database is unavailable or corrupted.")
 
-
-    def delete_reservation(self, reservation_id: str):
-        reservation = self.__by_reservation_id.get(reservation_id)
-        if reservation is None:
-            raise ReservationNotFoundError(f"Reservation with id {reservation_id} does not exist.")
-        try:
-            db.delete_reservation(self.__connection, reservation.db_id)
-            self.remove_from_cache(reservation)
-        except sqlite3.OperationalError:
-            raise DatabaseUnavailableError("Database is unavailable or corrupted.")
