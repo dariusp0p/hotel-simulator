@@ -1,6 +1,6 @@
 from src.utilities.decorators import require_role
 from src.utilities.roles import Roles
-from src.service.room_service import RoomService
+from src.service.hotel_service import RoomService
 from src.service.reservation_service import ReservationService
 from src.service.action_manager import ActionManager
 from src.service.action import Action
