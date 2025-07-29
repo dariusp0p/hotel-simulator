@@ -14,9 +14,7 @@ class Floor:
     def add_element(self, element):
         self.__elements[element.element_id] = element
         self.__grid[element.position] = element
-
-        # handle connections
-        # self.__connections[element.element_id] = element.connections
+        self.handle_connections(element)
 
     def edit_room(self):
         pass
@@ -26,31 +24,6 @@ class Floor:
 
     def remove_element(self, element):
         pass
-
-
-    def get_neighbors(self, element):
-        x = element.position[0]
-        y = element.position[1]
-        neighbor_positions = [
-            (x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)
-        ]
-        neighbors = {}
-        for position in neighbor_positions:
-            if position in self.__grid.keys():
-                neighbors[position] = self.__grid[position]
-        return neighbors
-
-
-
-    def handle_connections(self, element):
-        if element.element_type is "room":
-            if len(element.connections) < 1:
-                neighbors = self.get_neighbors(element)
-                for element in neighbors.values():
-                    if element.element_type is "hallway":
-
-
-
 
 
 
@@ -65,4 +38,24 @@ class Floor:
                 el1.connections.add(id2)
                 el2.connections.add(id1)
             else:
-                raise Exception("NONO")
+                raise Exception("Connection not allowed")
+
+    def handle_connections(self, element):
+        if element.connections:
+            return
+
+        neighbors = self.get_neighbors(element)
+        for neighbor in neighbors.values():
+            if element.can_connect_to(neighbor) and neighbor.can_connect_to(element):
+                self.connect(element.id, neighbor.id)
+                if element.element_type == "room":
+                    break
+
+    def get_neighbors(self, element):
+        x, y = element.position
+        neighbor_positions = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+        neighbors = {}
+        for pos in neighbor_positions:
+            if pos in self.__grid:
+                neighbors[pos] = self.__grid[pos]
+        return neighbors
