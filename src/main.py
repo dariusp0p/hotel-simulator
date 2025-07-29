@@ -6,18 +6,18 @@ from src.db.database_manager import DatabaseManager
 from src.repository.reservation_repository import ReservationRepository
 from src.service.reservation_service import ReservationService
 from src.ui.gui import MainWindow
+from src.ui.main_menu import MainMenuWindow
 
 
 def main():
     app = QApplication(sys.argv)
 
-
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    data_dir = os.path.join(base_dir, '..', 'data', 'db')
+    data_dir = os.path.join(base_dir, "..", "data", "db")
 
     db_manager = DatabaseManager(
-        reservations_db=os.path.join(data_dir, 'reservations.db'),
-        rooms_db=os.path.join(data_dir, 'rooms.db'),
+        reservations_db=os.path.join(data_dir, "reservations.db"),
+        rooms_db=os.path.join(data_dir, "rooms.db"),
     )
 
     db_manager.initialize_databases()
@@ -27,11 +27,11 @@ def main():
     reservation_repository = ReservationRepository(reservations_connection)
     reservation_service = ReservationService(reservation_repository)
 
-    window = MainWindow(reservation_service)
+    window = MainMenuWindow()
     window.show()
 
     sys.exit(app.exec())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
