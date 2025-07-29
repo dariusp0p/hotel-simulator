@@ -17,7 +17,7 @@ def main():
 
     db_manager = DatabaseManager(
         reservations_db=os.path.join(data_dir, "reservations.db"),
-        rooms_db=os.path.join(data_dir, "rooms.db"),
+        hotel_db=os.path.join(data_dir, "hotel.db"),
     )
 
     db_manager.initialize_databases()
