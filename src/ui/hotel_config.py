@@ -3,7 +3,7 @@ import os
 
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QListWidget, QLabel, QGraphicsView, QGraphicsScene,
+    QListWidget, QLabel, QGraphicsView, QGraphicsScene, QLineEdit,
     QGraphicsRectItem, QGraphicsItem, QGraphicsLineItem
 )
 from PyQt6.QtGui import QBrush, QColor, QPen, QPainter
@@ -14,8 +14,8 @@ from src.service.hotel_service import HotelService
 from collections import defaultdict, namedtuple
 
 TILE_SIZE = 50
-GRID_WIDTH = 6
-GRID_HEIGHT = 6
+GRID_WIDTH = 10
+GRID_HEIGHT = 10
 Room = namedtuple("Room", ["id", "x", "y", "type", "status"])
 
 class FloorPlanGraph:
@@ -114,6 +114,8 @@ class FloorPlanScene(QGraphicsScene):
         pos = item.pos()
         return QPointF(pos.x() + rect.width() / 2, pos.y() + rect.height() / 2)
 
+
+
 class MainWindow(QWidget):
     def __init__(self, service: HotelService):
         super().__init__()
@@ -125,22 +127,45 @@ class MainWindow(QWidget):
         self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         self.init_ui()
+        self.load_floors()
+
+        if self.floor_list.count() > 0:
+            self.floor_list.setCurrentRow(0)
+            self.update_floor_plan(self.floor_list.currentItem().text())
+
+
+
+    def load_floors(self):
+        self.floor_list.clear()
+        for floor_name in self.service.get_floors():
+            self.floor_list.addItem(floor_name)
 
     def init_ui(self):
         main_layout = QHBoxLayout()
         side_bar = QVBoxLayout()
 
-        self.floor_list = QListWidget()
+        # Floor list and label
         side_bar.addWidget(QLabel("Floors:"))
+        self.floor_list = QListWidget()
+        self.floor_list.currentItemChanged.connect(self.on_floor_selected)
         side_bar.addWidget(self.floor_list)
+
+        # Floor input controls
+        floor_input_layout = QHBoxLayout()
+        self.floor_name_input = QLineEdit()
+        self.floor_name_input.setPlaceholderText("Floor name")
         add_floor_btn = QPushButton("Add Floor")
         add_floor_btn.clicked.connect(self.add_floor)
-        side_bar.addWidget(add_floor_btn)
 
+        floor_input_layout.addWidget(self.floor_name_input)
+        floor_input_layout.addWidget(add_floor_btn)
+        side_bar.addLayout(floor_input_layout)
+
+        # Room type hotbar
         hotbar = QHBoxLayout()
         for label in ["Room", "Staircase", "Hallway"]:
             btn = QPushButton(label)
-            btn.clicked.connect(lambda _, l=label: self.scene.add_room(label, 0, 0))
+            btn.clicked.connect(lambda _, l=label.lower(): self.add_element(l))
             hotbar.addWidget(btn)
 
         central_layout = QVBoxLayout()
@@ -151,12 +176,85 @@ class MainWindow(QWidget):
         main_layout.addLayout(central_layout)
 
         self.setLayout(main_layout)
-        self.setFixedSize(600, 500)
+        self.setFixedSize(800, 600)
+
+    def on_floor_selected(self, current, previous):
+        if current:
+            floor_name = current.text()
+            self.update_floor_plan(floor_name)
+
+    def update_floor_plan(self, floor_name):
+        # Clear current floor plan
+        self.scene.clear()
+        self.graph = FloorPlanGraph()
+        self.scene.graph = self.graph
+        self.scene.room_items = {}
+        self.scene.connection_lines = []
+        self.scene.draw_grid()
+
+        # Get floor grid from service
+        try:
+            grid = self.service.get_floor_grid(floor_name)
+            for pos, element in grid.items():
+                x, y = pos
+                element_id = element.element_id
+                element_type = element.element_type
+
+                # Add element to the scene
+                room = RoomItem(self.scene, self.graph, element_id, x, y)
+
+                # Set different colors based on element type
+                if element_type == "staircase":
+                    room.setBrush(QBrush(QColor(255, 165, 0)))  # Orange
+                elif element_type == "hallway":
+                    room.setBrush(QBrush(QColor(200, 200, 200)))  # Gray
+                else:  # room
+                    room.setBrush(QBrush(QColor(100, 200, 250)))  # Blue
+
+                self.scene.addItem(room)
+                self.scene.room_items[element_id] = room
+
+            self.scene.update_connections()
+        except Exception as e:
+            print(f"Error loading floor plan: {e}")
+
+    def add_element(self, element_type):
+        if self.floor_list.currentItem():
+            floor_name = self.floor_list.currentItem().text()
+            floor_id = self.service.get_floor_id(floor_name)
+
+            # Get a reasonable position (could be improved)
+            x, y = 1, 1
+
+            element_data = {
+                "element_type": element_type,
+                "floor_id": floor_id,
+                "capacity": 0 if element_type != "room" else 2,
+                "position": (x, y)
+            }
+            print("YE")
+            try:
+                self.service.add_element(element_data)
+                self.update_floor_plan(floor_name)
+            except Exception as e:
+                print(f"Error adding element: {e}")
 
     def add_floor(self):
-        name = f"Floor {self.floor_list.count() + 1}"
-        self.service.add_floor(name)
-        self.floor_list.addItem(name)
+        floor_name = self.floor_name_input.text().strip()
+        if not floor_name:
+            floor_name = f"Floor {self.floor_list.count() + 1}"
+
+        try:
+            self.service.add_floor(floor_name)
+            self.floor_list.addItem(floor_name)
+            self.floor_name_input.clear()
+            print(f"Floor {floor_name} added")
+        except Exception as e:
+            # In a real application, show an error dialog here
+            print(f"Error adding floor: {e}")
+
+
+
 
 
 def main():

@@ -9,6 +9,13 @@ class Floor:
         self.__connections = {}
 
     @property
+    def db_id(self):
+        return self.__db_id
+    @db_id.setter
+    def db_id(self, db_id):
+        self.__db_id = db_id
+
+    @property
     def name(self):
         return self.__name
     @name.setter

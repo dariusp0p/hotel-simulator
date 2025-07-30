@@ -45,12 +45,12 @@ def get_floor_id(connection, floor_name):
     except sqlite3.OperationalError as e:
         raise e
 
-def get_elements_by_floor_id(connection, id):
+def get_elements_by_floor_id(connection, floor_id):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT * FROM elements WHERE id=?
-        """, (id,))
+            SELECT * FROM elements WHERE floor_id=?
+        """, (floor_id,))
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
         raise e
@@ -59,7 +59,7 @@ def add_floor(connection, floor_name):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            INSERT INTO floors (floor_name=?)
+            INSERT INTO floors (name) VALUES (?)
         """, (floor_name,))
         connection.commit()
     except sqlite3.IntegrityError as e:
@@ -71,7 +71,7 @@ def get_floor_by_name(connection, floor_name):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT * FROM floors WHERE floor_name=?
+            SELECT * FROM floors WHERE name=?
         """, (floor_name,))
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
@@ -81,9 +81,9 @@ def add_element(connection, element_id, element_type, floor_id, capacity, x, y):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            INSERT INTO elements (element_id=?, element_type=?, floor_id=?, capacity=?, x=?, y=?)
-            """, (element_id, element_type, floor_id, capacity, x, y))
-        cursor.commit()
+            INSERT INTO elements (element_id, element_type, floor_id, capacity, x, y) VALUES (?, ?, ?, ?, ?, ?)            
+        """, (element_id, element_type, floor_id, capacity, x, y))
+        connection.commit()
     except sqlite3.IntegrityError as e:
         raise e
     except sqlite3.OperationalError as e:
@@ -98,5 +98,3 @@ def get_element_by_element_id(connection, element_id):
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
         raise e
-
-

@@ -49,4 +49,5 @@ class FloorElement:
 
     # TODO
     def validate(self) -> list:
-        pass
+        errors = []
+        return errors

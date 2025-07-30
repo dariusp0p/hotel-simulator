@@ -16,6 +16,9 @@ class HotelService:
     def get_floors(self):
         return self.__repository.get_floors()
 
+    def get_floor_id(self, floor_name):
+        return self.__repository.get_floor_id(floor_name)
+
     def get_floor_grid(self, floor_name):
         return self.__repository.get_floor_grid(floor_name)
 
@@ -56,7 +59,7 @@ class HotelService:
             type = "H"
         else:
             type = "R"
-        floor_name = element_data["floor_name"][0]
+        floor_name = str(element_data["floor_id"])
         code = str(randint(100, 999))
         element_id = type + floor_name + code
         return element_id
