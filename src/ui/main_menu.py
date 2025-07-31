@@ -1,11 +1,9 @@
 from PyQt6.QtWidgets import (
-    QMainWindow,
     QWidget,
     QPushButton,
     QVBoxLayout,
     QHBoxLayout,
     QLineEdit,
-    QCheckBox,
     QLabel,
     QSizePolicy,
     QFrame,
@@ -17,19 +15,15 @@ from src.ui.components.app_button import AppButton
 from src.ui.components.custom_switch import CustomSwitch
 
 
-class MainMenuWindow(QMainWindow):
-    def __init__(self):
+class MainMenuPage(QWidget):
+    def __init__(self, on_reservation_click=None):
         super().__init__()
-        self.setWindowTitle("Hotel Simulator - Main Menu")
-        self.resize(1000, 700)
-        self.setMinimumSize(1000, 700)
+        self.on_reservation_click = on_reservation_click
 
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.central_widget.setStyleSheet("background-color: #bfbfbf;")
+        self.setStyleSheet("background-color: #bfbfbf;")
 
         self.main_layout = QVBoxLayout()
-        self.central_widget.setLayout(self.main_layout)
+        self.setLayout(self.main_layout)
 
         self.init_buttons()
         self.init_user_section()
@@ -50,6 +44,8 @@ class MainMenuWindow(QMainWindow):
                 QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
             )
             self.buttons_layout.addWidget(btn)
+
+        self.reservation_btn.connect(self.handle_reservation_click)
 
         outer_layout = QHBoxLayout()
         outer_layout.setContentsMargins(40, 0, 40, 0)
@@ -179,3 +175,7 @@ class MainMenuWindow(QMainWindow):
 
             self.simulator_btn.lock()
             self.configurator_btn.lock()
+
+    def handle_reservation_click(self):
+        if not self.reservation_btn.is_locked() and self.on_reservation_click:
+            self.on_reservation_click(self.admin_switch.isChecked())

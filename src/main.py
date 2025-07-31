@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import QApplication
 from src.db.database_manager import DatabaseManager
 from src.repository.reservation_repository import ReservationRepository
 from src.service.reservation_service import ReservationService
-from src.ui.gui import MainWindow
-from src.ui.main_menu import MainMenuWindow
+from src.ui.main_menu import MainMenuPage
+from src.ui.main_window import MainWindow
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
     reservation_repository = ReservationRepository(reservations_connection)
     reservation_service = ReservationService(reservation_repository)
 
-    window = MainMenuWindow()
+    window = MainWindow()
     window.show()
 
     sys.exit(app.exec())
