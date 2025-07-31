@@ -33,6 +33,8 @@ class ReservationService:
     def get_reservation_by_id(self, reservation_id):
         return self.__repository.get_by_reservation_id(reservation_id)
 
+    def get_reservations_by_guest_name(self, guest_name):
+        return self.__repository.get_by_guest_name(guest_name)
 
 
     def make_reservation(self, reservation_data: dict) -> None:

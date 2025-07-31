@@ -41,6 +41,8 @@ class Controller:
     def get_reservation_by_id(self, reservation_id):
         return self.__reservation_service.get_reservation_by_id(reservation_id)
 
+    def get_reservations_by_guest_name(self, guest_name):
+        return self.__reservation_service.get_reservations_by_guest_name(guest_name)
 
 
     def make_reservation(self, room_number, guest_name, guest_number, arrival_date, departure_date):
