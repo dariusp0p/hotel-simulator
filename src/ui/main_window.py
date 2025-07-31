@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget
 from src.ui.main_menu import MainMenuPage
 from src.ui.reservation_admin import ReservationAdminPage
-from src.ui.reservation_user import ReservationUserWindow
+from src.ui.reservation_user import ReservationUserPage
 
 
 class MainWindow(QMainWindow):
@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
             on_reservation_click=self.handle_reservation_click
         )
         self.reservation_admin = ReservationAdminPage(on_back=self.show_main_menu)
-        self.reservation_user = ReservationUserWindow()
+        self.reservation_user = ReservationUserPage(on_back=self.show_main_menu)
 
         self.stack.addWidget(self.main_menu)
         self.stack.addWidget(self.reservation_admin)
