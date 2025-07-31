@@ -16,9 +16,10 @@ from src.ui.components.custom_switch import CustomSwitch
 
 
 class MainMenuPage(QWidget):
-    def __init__(self, on_reservation_click=None):
+    def __init__(self, on_reservation_click=None, on_configurator_click=None):
         super().__init__()
         self.on_reservation_click = on_reservation_click
+        self.on_configurator_click = on_configurator_click
 
         self.setStyleSheet("background-color: #bfbfbf;")
 
@@ -46,6 +47,7 @@ class MainMenuPage(QWidget):
             self.buttons_layout.addWidget(btn)
 
         self.reservation_btn.connect(self.handle_reservation_click)
+        self.configurator_btn.connect(self.handle_configurator_click)
 
         outer_layout = QHBoxLayout()
         outer_layout.setContentsMargins(40, 0, 40, 0)
@@ -179,3 +181,7 @@ class MainMenuPage(QWidget):
     def handle_reservation_click(self):
         if not self.reservation_btn.is_locked() and self.on_reservation_click:
             self.on_reservation_click(self.admin_switch.isChecked())
+
+    def handle_configurator_click(self):
+        if self.on_configurator_click:
+            self.on_configurator_click()
