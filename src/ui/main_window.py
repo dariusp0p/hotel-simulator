@@ -14,18 +14,26 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        self.main_menu = MainMenuPage(
-            on_reservation_click=self.handle_reservation_click
+        self.hotel_service = HotelService(
+            HotelRepository(get_connection("data/db/hotel.db"))
         )
-        self.reservation_admin = ReservationAdminPage(
-            on_back=self.show_main_menu,
-            controller=controller
+
+        self.main_menu = MainMenuPage(
+            on_reservation_click=self.handle_reservation_click,
+            on_configurator_click=self.show_hotel_configurator,
+        )
+
+        self.reservation_admin = ReservationAdminPage(on_back=self.show_main_menu)
+        self.reservation_user = ReservationUserPage(on_back=self.show_main_menu)
+        self.hotel_configurator = HotelConfiguratorPage(
+            on_back=self.show_main_menu, hotel_service=self.hotel_service
         )
         self.reservation_user = ReservationUserPage()
 
         self.stack.addWidget(self.main_menu)
         self.stack.addWidget(self.reservation_admin)
         self.stack.addWidget(self.reservation_user)
+        self.stack.addWidget(self.hotel_configurator)
 
         self.stack.setCurrentWidget(self.main_menu)
 
@@ -34,6 +42,9 @@ class MainWindow(QMainWindow):
 
     def show_main_menu(self):
         self.stack.setCurrentWidget(self.main_menu)
+
+    def show_hotel_configurator(self):
+        self.stack.setCurrentWidget(self.hotel_configurator)
 
     def handle_reservation_click(self, is_admin: bool):
         if is_admin:
