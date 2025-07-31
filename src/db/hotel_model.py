@@ -98,3 +98,13 @@ def get_element_by_element_id(connection, element_id):
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
         raise e
+
+def get_rooms_by_capacity(connection, capacity):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT * FROM elements WHERE element_type = 'room' AND capacity >= ?
+        """, (capacity,))
+        return cursor.fetchall()
+    except sqlite3.OperationalError as e:
+        raise e

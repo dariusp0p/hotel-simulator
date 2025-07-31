@@ -31,6 +31,9 @@ class HotelRepository:
     def get_floor_id(self, floor_name):
         return self.__floors_by_name[floor_name].db_id
 
+    def get_rooms_by_capacity(self, capacity):
+        return db.get_rooms_by_capacity(self.__connection, capacity)
+
 
     def load_from_db(self):
         floors = db.get_all_floors(self.__connection)

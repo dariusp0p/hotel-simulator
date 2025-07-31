@@ -76,7 +76,8 @@ class ReservationService:
         reservation_id = "R" + reservation_data['room_number'] + check_in_date + check_out_date + code
         return reservation_id
 
-
+    def get_reservations_by_room_id(self, room_id):
+        return self.__repository.get_reservations_by_room_number(room_id)
 
 
     # def getIntervals(self, room):
@@ -87,14 +88,7 @@ class ReservationService:
     #     return intervals
     #
     #
-    # def getAvailableRooms(self, arrivalDate, departureDate):
-    #     availableRooms = {}
-    #     for room, capacity in self.__rooms.items():
-    #         intervals = self.getIntervals(room)
-    #         overlap = any(s <= departureDate and e >= arrivalDate for s, e in intervals)
-    #         if not overlap:
-    #             availableRooms[room] = capacity
-    #     return availableRooms
+
     #
     # def getIntervalReservations(self, startDate, endDate):
     #     reservations = {}

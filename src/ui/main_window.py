@@ -2,10 +2,11 @@ from PyQt6.QtWidgets import QMainWindow, QStackedWidget
 from src.ui.main_menu import MainMenuPage
 from src.ui.reservation_admin import ReservationAdminPage
 from src.ui.reservation_user import ReservationUserWindow
+from src.service.controller import Controller
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, controller):
         super().__init__()
         self.setWindowTitle("Hotel Simulator")
         self.resize(1000, 700)
@@ -16,7 +17,10 @@ class MainWindow(QMainWindow):
         self.main_menu = MainMenuPage(
             on_reservation_click=self.handle_reservation_click
         )
-        self.reservation_admin = ReservationAdminPage(on_back=self.show_main_menu)
+        self.reservation_admin = ReservationAdminPage(
+            on_back=self.show_main_menu,
+            controller=controller
+        )
         self.reservation_user = ReservationUserWindow()
 
         self.stack.addWidget(self.main_menu)

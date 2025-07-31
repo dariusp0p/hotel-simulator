@@ -22,6 +22,9 @@ class HotelService:
     def get_floor_grid(self, floor_name):
         return self.__repository.get_floor_grid(floor_name)
 
+    def get_rooms_by_capacity(self, capacity):
+        return self.__repository.get_rooms_by_capacity(capacity)
+
 
     def add_floor(self, floor_name):
         self.__repository.add_floor(Floor(name=floor_name))

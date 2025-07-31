@@ -12,15 +12,17 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QDialog,
     QDialogButtonBox,
+    QMessageBox,
 )
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QTextCharFormat, QColor
 
 
 class ReservationAdminPage(QWidget):
-    def __init__(self, on_back=None):
+    def __init__(self, on_back=None, controller=None):
         super().__init__()
         self.on_back = on_back
+        self.controller = controller
 
         self.check_in_date = None
         self.check_out_date = None
@@ -59,12 +61,14 @@ class ReservationAdminPage(QWidget):
         self.calendar = QCalendarWidget()
         self.calendar.setSelectedDate(QDate.currentDate())
         self.calendar.clicked.connect(self.handle_date_click)
+        self.calendar.selectionChanged.connect(self.update_available_rooms)  # Refresh on calendar change
         date_layout.addWidget(self.calendar)
         date_group.setLayout(date_layout)
 
         self.guest_spin = QSpinBox()
         self.guest_spin.setMinimum(1)
         self.guest_spin.setMaximum(20)
+        self.guest_spin.valueChanged.connect(self.update_available_rooms)  # Refresh on guest count change
         guest_box = QGroupBox("Number of guests")
         guest_layout = QVBoxLayout()
         guest_layout.addWidget(self.guest_spin)
@@ -219,3 +223,54 @@ class ReservationAdminPage(QWidget):
                 d = d.addDays(1)
                 if d < self.check_out_date:
                     self.calendar.setDateTextFormat(d, fmt_between)
+
+
+    def update_available_rooms(self):
+        if not self.controller or not self.check_in_date or not self.check_out_date:
+            return
+
+        self.available_rooms.clear()
+
+        # Fetch available rooms from the controller
+        available_rooms = self.controller.get_available_rooms(
+            self.check_in_date.toString("yyyy-MM-dd"),
+            self.check_out_date.toString("yyyy-MM-dd"),
+            self.guest_spin.value()
+        )
+
+        # Populate the available rooms list
+        for room in available_rooms:
+            self.available_rooms.addItem(f"Room {room[1]} - Capacity: {room[4]}")
+
+    def make_reservation(self):
+        if not self.controller:
+            return
+
+        if not self.check_in_date or not self.check_out_date:
+            QMessageBox.warning(self, "Warning", "Please select check-in and check-out dates")
+            return
+
+        selected_items = self.available_rooms.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(self, "Warning", "Please select a room")
+            return
+
+        guest_name = self.name_input.text().strip()
+        if not guest_name:
+            QMessageBox.warning(self, "Warning", "Please enter guest name")
+            return
+
+        selected_room = selected_items[0].text().split()[1]  # Extract room number
+        try:
+            self.controller.make_reservation(
+                room_number=selected_room,
+                guest_name=guest_name,
+                guest_number=self.guest_spin.value(),
+                arrival_date=self.check_in_date.toString("yyyy-MM-dd"),
+                departure_date=self.check_out_date.toString("yyyy-MM-dd")
+            )
+            QMessageBox.information(self, "Success", "Reservation created successfully!")
+            self.name_input.clear()
+            self.update_available_rooms()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to create reservation: {str(e)}")

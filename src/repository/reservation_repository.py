@@ -125,6 +125,8 @@ class ReservationRepository:
         except sqlite3.OperationalError:
             raise DatabaseUnavailableError("Database is unavailable or corrupted.")
 
+    def get_reservations_by_room_number(self, room_number):
+        return self.__by_room_number.get(room_number, [])
 
     def delete_reservation(self, reservation_id: str):
         reservation = self.__by_reservation_id.get(reservation_id)
