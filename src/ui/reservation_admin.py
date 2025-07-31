@@ -10,6 +10,8 @@ from PyQt6.QtWidgets import (
     QCalendarWidget,
     QSpinBox,
     QGroupBox,
+    QDialog,
+    QDialogButtonBox,
 )
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QTextCharFormat, QColor
@@ -104,14 +106,32 @@ class ReservationAdminPage(QWidget):
         self.left_layout.addWidget(self.reserve_btn)
 
     def setup_right_side(self):
-        self.reservations_box = QGroupBox("Your Reservations")
+        self.reservations_box = QGroupBox("All Reservations")
+        main_res_layout = QVBoxLayout()
+
+        date_filter_layout = QHBoxLayout()
+        self.from_btn = QPushButton("From")
+        self.to_btn = QPushButton("To")
+
+        for btn in [self.from_btn, self.to_btn]:
+            btn.setStyleSheet(
+                "padding: 6px; font-weight: bold; background-color: #666; color: white"
+            )
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        self.from_btn.clicked.connect(lambda: self.open_date_picker("from"))
+        self.to_btn.clicked.connect(lambda: self.open_date_picker("to"))
+
+        date_filter_layout.addWidget(self.from_btn)
+        date_filter_layout.addWidget(self.to_btn)
+        main_res_layout.addLayout(date_filter_layout)
+
         self.reservations_list = QListWidget()
-        res_layout = QVBoxLayout()
-        res_layout.addWidget(self.reservations_list)
         self.reservations_list.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
-        self.reservations_box.setLayout(res_layout)
+        main_res_layout.addWidget(self.reservations_list)
+        self.reservations_box.setLayout(main_res_layout)
 
         self.edit_btn = QPushButton("Edit")
         self.delete_btn = QPushButton("Delete")
@@ -128,6 +148,38 @@ class ReservationAdminPage(QWidget):
 
         self.right_layout.addWidget(self.reservations_box)
         self.right_layout.addLayout(btns_layout)
+
+    def open_date_picker(self, which):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Select {which.capitalize()} Date")
+        layout = QVBoxLayout()
+
+        calendar = QCalendarWidget()
+        calendar.setGridVisible(True)
+        calendar.setSelectedDate(QDate.currentDate())
+        layout.addWidget(calendar)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        layout.addWidget(buttons)
+
+        def accept():
+            selected_date = calendar.selectedDate()
+            if which == "from":
+                self.from_btn.setText(f"From: {selected_date.toString('yyyy-MM-dd')}")
+            else:
+                self.to_btn.setText(f"To: {selected_date.toString('yyyy-MM-dd')}")
+            dialog.accept()
+
+        def reject():
+            dialog.reject()
+
+        buttons.accepted.connect(accept)
+        buttons.rejected.connect(reject)
+
+        dialog.setLayout(layout)
+        dialog.exec()
 
     def handle_back_click(self):
         if self.on_back:
@@ -147,7 +199,7 @@ class ReservationAdminPage(QWidget):
 
     def highlight_date_range(self):
         default_format = QTextCharFormat()
-        self.calendar.setDateTextFormat(QDate(), default_format)  # reset all
+        self.calendar.setDateTextFormat(QDate(), default_format)
 
         if self.check_in_date:
             fmt_in = QTextCharFormat()
