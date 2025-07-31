@@ -2,8 +2,9 @@ from PyQt6.QtWidgets import QWidget, QPushButton, QVBoxLayout
 
 
 class HotelConfiguratorPage(QWidget):
-    def __init__(self, on_back=None, hotel_service=None):
+    def __init__(self, on_back=None, hotel_service=None, controller=None):
         super().__init__()
+        self.controller = controller
         self.on_back = on_back
         self.hotel_service = hotel_service
 
