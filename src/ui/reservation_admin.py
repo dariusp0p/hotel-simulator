@@ -61,14 +61,14 @@ class ReservationAdminPage(QWidget):
         self.calendar = QCalendarWidget()
         self.calendar.setSelectedDate(QDate.currentDate())
         self.calendar.clicked.connect(self.handle_date_click)
-        self.calendar.selectionChanged.connect(self.update_available_rooms)  # Refresh on calendar change
+        self.calendar.selectionChanged.connect(self.update_available_rooms)
         date_layout.addWidget(self.calendar)
         date_group.setLayout(date_layout)
 
         self.guest_spin = QSpinBox()
         self.guest_spin.setMinimum(1)
         self.guest_spin.setMaximum(20)
-        self.guest_spin.valueChanged.connect(self.update_available_rooms)  # Refresh on guest count change
+        self.guest_spin.valueChanged.connect(self.update_available_rooms)
         guest_box = QGroupBox("Number of guests")
         guest_layout = QVBoxLayout()
         guest_layout.addWidget(self.guest_spin)
@@ -225,7 +225,6 @@ class ReservationAdminPage(QWidget):
                 if d < self.check_out_date:
                     self.calendar.setDateTextFormat(d, fmt_between)
 
-
     def update_available_rooms(self):
         if not self.controller or not self.check_in_date or not self.check_out_date:
             return
@@ -236,7 +235,7 @@ class ReservationAdminPage(QWidget):
         available_rooms = self.controller.get_available_rooms(
             self.check_in_date.toString("yyyy-MM-dd"),
             self.check_out_date.toString("yyyy-MM-dd"),
-            self.guest_spin.value()
+            self.guest_spin.value(),
         )
 
         # Populate the available rooms list
@@ -249,7 +248,9 @@ class ReservationAdminPage(QWidget):
             return
         print("YEAH")
         if not self.check_in_date or not self.check_out_date:
-            QMessageBox.warning(self, "Warning", "Please select check-in and check-out dates")
+            QMessageBox.warning(
+                self, "Warning", "Please select check-in and check-out dates"
+            )
             return
 
         selected_items = self.available_rooms.selectedItems()
@@ -270,10 +271,14 @@ class ReservationAdminPage(QWidget):
                 guest_name=guest_name,
                 guest_number=self.guest_spin.value(),
                 arrival_date=self.check_in_date.toString("yyyy-MM-dd"),
-                departure_date=self.check_out_date.toString("yyyy-MM-dd")
+                departure_date=self.check_out_date.toString("yyyy-MM-dd"),
             )
-            QMessageBox.information(self, "Success", "Reservation created successfully!")
+            QMessageBox.information(
+                self, "Success", "Reservation created successfully!"
+            )
             self.name_input.clear()
             self.update_available_rooms()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to create reservation: {str(e)}")
+            QMessageBox.critical(
+                self, "Error", f"Failed to create reservation: {str(e)}"
+            )
