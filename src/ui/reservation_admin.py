@@ -149,6 +149,7 @@ class ReservationAdminPage(QWidget):
             )
             btn.setEnabled(False)  # Initially disabled
 
+        self.edit_btn.clicked.connect(self.handle_edit_reservation)
         self.delete_btn.clicked.connect(self.handle_delete_reservation)
 
         btns_layout = QHBoxLayout()
@@ -336,3 +337,72 @@ class ReservationAdminPage(QWidget):
                 QMessageBox.information(self, "Success", "Reservation deleted successfully!")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to delete reservation: {str(e)}")
+
+    def handle_edit_reservation(self):
+        selected_item = self.reservations_list.currentItem()
+        if not selected_item:
+            return
+
+        reservation_id = selected_item.text().split(",")[0].split(":")[1].strip()
+        reservation = self.controller.get_reservation_by_id(reservation_id)
+
+        if not reservation:
+            QMessageBox.warning(self, "Error", "Reservation not found!")
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Edit Reservation")
+        layout = QVBoxLayout()
+
+        # Form fields
+        room_input = QLineEdit(reservation.room_number)
+        guest_name_input = QLineEdit(reservation.guest_name)
+        guest_count_input = QSpinBox()
+        guest_count_input.setValue(reservation.number_of_guests)
+        guest_count_input.setMinimum(1)
+        guest_count_input.setMaximum(20)
+
+        check_in_input = QLineEdit(reservation.check_in_date.strftime("%Y-%m-%d"))
+        check_out_input = QLineEdit(reservation.check_out_date.strftime("%Y-%m-%d"))
+
+        layout.addWidget(QLabel("Room Number:"))
+        layout.addWidget(room_input)
+        layout.addWidget(QLabel("Guest Name:"))
+        layout.addWidget(guest_name_input)
+        layout.addWidget(QLabel("Number of Guests:"))
+        layout.addWidget(guest_count_input)
+        layout.addWidget(QLabel("Check-in Date (YYYY-MM-DD):"))
+        layout.addWidget(check_in_input)
+        layout.addWidget(QLabel("Check-out Date (YYYY-MM-DD):"))
+        layout.addWidget(check_out_input)
+
+        # Buttons
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        layout.addWidget(buttons)
+
+        def confirm():
+            try:
+                self.controller.update_reservation(
+                    reservation_id,
+                    room_input.text().strip(),
+                    guest_name_input.text().strip(),
+                    guest_count_input.value(),
+                    check_in_input.text().strip(),
+                    check_out_input.text().strip()
+                )
+                QMessageBox.information(self, "Success", "Reservation updated successfully!")
+                self.populate_reservations_list()
+                dialog.accept()
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to update reservation: {str(e)}")
+
+        def cancel():
+            dialog.reject()
+
+        buttons.accepted.connect(confirm)
+        buttons.rejected.connect(cancel)
+
+        dialog.setLayout(layout)
+        dialog.exec()

@@ -72,6 +72,22 @@ class ReservationRepository:
                 pass
 
 
+    def get_all_reservations(self):
+        return list(self.__by_reservation_id.values())
+
+    def get_by_reservation_id(self, reservation_id):
+        return self.__by_reservation_id.get(reservation_id)
+
+    def get_by_room_number(self, room_nr):
+        return self.__by_room_number.get(room_nr)
+
+    def get_by_guest_name(self, guest_name):
+        return self.__by_guest_name.get(guest_name)
+
+    def get_reservations_by_room_number(self, room_number):
+        return self.__by_room_number.get(room_number, [])
+
+
     def add_reservation(self, reservation: Reservation):
         try:
             db.add_reservation(
@@ -92,19 +108,6 @@ class ReservationRepository:
         except sqlite3.OperationalError:
             raise DatabaseUnavailableError("Database is unavailable or corrupted.")
 
-    def get_all_reservations(self):
-        return list(self.__by_reservation_id.values())
-
-    def get_by_reservation_id(self, reservation_id):
-        return self.__by_reservation_id.get(reservation_id)
-
-    def get_by_room_number(self, room_nr):
-        return self.__by_room_number.get(room_nr)
-
-    def get_by_guest_name(self, guest_name):
-        return self.__by_guest_name.get(guest_name)
-
-
     def update_reservation(self, reservation: Reservation):
         old_reservation = self.__by_reservation_id.get(reservation.reservation_id)
         if old_reservation is None:
@@ -112,7 +115,7 @@ class ReservationRepository:
         try:
             db.update_reservation(
                 self.__connection,
-                reservation.db_id,
+                old_reservation.db_id,
                 reservation.reservation_id,
                 reservation.room_number,
                 reservation.guest_name,
@@ -124,9 +127,6 @@ class ReservationRepository:
             self.add_to_cache(reservation)
         except sqlite3.OperationalError:
             raise DatabaseUnavailableError("Database is unavailable or corrupted.")
-
-    def get_reservations_by_room_number(self, room_number):
-        return self.__by_room_number.get(room_number, [])
 
     def delete_reservation(self, reservation_id: str):
         reservation = self.__by_reservation_id.get(reservation_id)

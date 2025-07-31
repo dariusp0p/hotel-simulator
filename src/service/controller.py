@@ -38,7 +38,8 @@ class Controller:
     def get_reservations_by_date_interval(self, from_date, to_date):
         return self.__reservation_service.get_reservations_by_date_interval(from_date, to_date)
 
-
+    def get_reservation_by_id(self, reservation_id):
+        return self.__reservation_service.get_reservation_by_id(reservation_id)
 
 
 
@@ -51,6 +52,17 @@ class Controller:
             "check_out_date": departure_date,
         }
         self.__reservation_service.make_reservation(reservation_data)
+
+    def update_reservation(self, reservation_id, room_number, guest_name, guest_number, arrival_date, departure_date):
+        reservation_data = {
+            "reservation_id": reservation_id,
+            "room_number": room_number,
+            "guest_name": guest_name,
+            "number_of_guests": guest_number,
+            "check_in_date": arrival_date,
+            "check_out_date": departure_date,
+        }
+        self.__reservation_service.update_reservation(reservation_data)
 
     def delete_reservation(self, reservation_id):
         self.__reservation_service.delete_reservation(reservation_id)
