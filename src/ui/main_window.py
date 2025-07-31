@@ -17,6 +17,7 @@ class MainWindow(QMainWindow):
 
         self.main_menu = MainMenuPage(
             on_reservation_click=self.handle_reservation_click,
+            # simulator
             on_configurator_click=self.show_hotel_configurator,
         )
 
@@ -24,7 +25,12 @@ class MainWindow(QMainWindow):
             on_back=self.show_main_menu,
             controller=controller
         )
-        self.reservation_user = ReservationUserPage(on_back=self.show_main_menu)
+
+        self.reservation_user = ReservationUserPage(
+            on_back=self.show_main_menu,
+            controller=controller
+        )
+
         self.hotel_configurator = HotelConfiguratorPage(
             on_back=self.show_main_menu,
             controller=controller

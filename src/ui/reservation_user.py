@@ -18,7 +18,7 @@ from PyQt6.QtGui import QTextCharFormat, QColor
 
 
 class ReservationUserPage(QWidget):
-    def __init__(self, on_back=None):
+    def __init__(self, on_back=None, controller=None):
         super().__init__()
         self.on_back = on_back
 

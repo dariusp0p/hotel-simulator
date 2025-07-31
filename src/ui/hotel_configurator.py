@@ -61,11 +61,10 @@ class EditFloorDialog(QDialog):
 
 
 class HotelConfiguratorPage(QWidget):
-    def __init__(self, on_back=None, hotel_service=None, controller=None):
+    def __init__(self, on_back=None, controller=None):
         super().__init__()
-        self.controller = controller
+        self.controller = controller.hotel_service
         self.on_back = on_back
-        self.hotel_service = hotel_service
 
         self.setStyleSheet("background-color: #bfbfbf;")
 
@@ -137,7 +136,7 @@ class HotelConfiguratorPage(QWidget):
             name = dialog.get_name()
             if name:
                 try:
-                    self.hotel_service.add_floor(name)
+                    self.controller.add_floor(name)
                     self.floor_list.addItem(name)
                 except Exception as e:
                     print("Error:", e)
@@ -153,7 +152,7 @@ class HotelConfiguratorPage(QWidget):
             new_name = dialog.get_new_name()
             if new_name and new_name != old_name:
                 try:
-                    self.hotel_service.rename_floor(old_name, new_name)
+                    self.controller.rename_floor(old_name, new_name)
                     current_item.setText(new_name)
                 except Exception as e:
                     print("Error:", e)
@@ -165,7 +164,7 @@ class HotelConfiguratorPage(QWidget):
 
         name = current_item.text()
         try:
-            self.hotel_service.remove_floor(name)
+            self.controller.remove_floor(name)
             self.floor_list.takeItem(self.floor_list.currentRow())
         except Exception as e:
             print("Error:", e)
