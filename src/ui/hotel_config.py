@@ -13,29 +13,13 @@ from src.db.database_manager import DatabaseManager
 from src.service.hotel_service import HotelService
 from collections import defaultdict, namedtuple
 
+
+
 TILE_SIZE = 50
 GRID_WIDTH = 10
 GRID_HEIGHT = 10
 Room = namedtuple("Room", ["id", "x", "y", "type", "status"])
 
-class FloorPlanGraph:
-    def __init__(self):
-        self.nodes = {}
-        self.adjacency = defaultdict(set)
-
-    def add_room(self, room_id, x, y, type_, status):
-        self.nodes[room_id] = Room(room_id, x, y, type_, status)
-
-    def move_room(self, room_id, x, y):
-        room = self.nodes[room_id]
-        self.nodes[room_id] = room._replace(x=x, y=y)
-
-    def clear_connections(self):
-        self.adjacency = defaultdict(set)
-
-    def connect_rooms(self, room1_id, room2_id):
-        self.adjacency[room1_id].add(room2_id)
-        self.adjacency[room2_id].add(room1_id)
 
 class RoomItem(QGraphicsRectItem):
     def __init__(self, scene, graph, room_id, x, y):
@@ -58,6 +42,29 @@ class RoomItem(QGraphicsRectItem):
         self.graph.move_room(self.room_id, snapped_x, snapped_y)
         self.scene.update_connections()
         super().mouseReleaseEvent(event)
+
+
+
+class FloorPlanGraph:
+    def __init__(self):
+        self.nodes = {}
+        self.adjacency = defaultdict(set)
+
+    def add_room(self, room_id, x, y, type_, status):
+        self.nodes[room_id] = Room(room_id, x, y, type_, status)
+
+    def move_room(self, room_id, x, y):
+        room = self.nodes[room_id]
+        self.nodes[room_id] = room._replace(x=x, y=y)
+
+    def clear_connections(self):
+        self.adjacency = defaultdict(set)
+
+    def connect_rooms(self, room1_id, room2_id):
+        self.adjacency[room1_id].add(room2_id)
+        self.adjacency[room2_id].add(room1_id)
+
+
 
 class FloorPlanScene(QGraphicsScene):
     def __init__(self, graph):
@@ -134,12 +141,6 @@ class MainWindow(QWidget):
             self.update_floor_plan(self.floor_list.currentItem().text())
 
 
-
-    def load_floors(self):
-        self.floor_list.clear()
-        for floor_name in self.service.get_floors():
-            self.floor_list.addItem(floor_name)
-
     def init_ui(self):
         main_layout = QHBoxLayout()
         side_bar = QVBoxLayout()
@@ -177,6 +178,11 @@ class MainWindow(QWidget):
 
         self.setLayout(main_layout)
         self.setFixedSize(800, 600)
+
+    def load_floors(self):
+        self.floor_list.clear()
+        for floor_name in self.service.get_floors():
+            self.floor_list.addItem(floor_name)
 
     def on_floor_selected(self, current, previous):
         if current:
@@ -232,7 +238,7 @@ class MainWindow(QWidget):
                 "capacity": 0 if element_type != "room" else 2,
                 "position": (x, y)
             }
-            print("YE")
+
             try:
                 self.service.add_element(element_data)
                 self.update_floor_plan(floor_name)
@@ -250,7 +256,6 @@ class MainWindow(QWidget):
             self.floor_name_input.clear()
             print(f"Floor {floor_name} added")
         except Exception as e:
-            # In a real application, show an error dialog here
             print(f"Error adding floor: {e}")
 
 
