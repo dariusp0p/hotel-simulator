@@ -135,6 +135,7 @@ class ReservationAdminPage(QWidget):
         self.reservations_list.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
+        self.reservations_list.itemSelectionChanged.connect(self.handle_selection_change)
         main_res_layout.addWidget(self.reservations_list)
         self.reservations_box.setLayout(main_res_layout)
 
@@ -146,6 +147,9 @@ class ReservationAdminPage(QWidget):
             btn.setStyleSheet(
                 "padding: 8px; font-weight: bold; background-color: #333; color: white"
             )
+            btn.setEnabled(False)  # Initially disabled
+
+        self.delete_btn.clicked.connect(self.handle_delete_reservation)
 
         btns_layout = QHBoxLayout()
         btns_layout.addWidget(self.edit_btn)
@@ -153,6 +157,9 @@ class ReservationAdminPage(QWidget):
 
         self.right_layout.addWidget(self.reservations_box)
         self.right_layout.addLayout(btns_layout)
+
+        self.populate_reservations_list()
+
 
     def open_date_picker(self, which):
         dialog = QDialog(self)
@@ -176,6 +183,7 @@ class ReservationAdminPage(QWidget):
             else:
                 self.to_btn.setText(f"To: {selected_date.toString('yyyy-MM-dd')}")
             dialog.accept()
+            self.populate_reservations_list()
 
         def reject():
             dialog.reject()
@@ -277,3 +285,54 @@ class ReservationAdminPage(QWidget):
             self.update_available_rooms()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to create reservation: {str(e)}")
+
+    def populate_reservations_list(self):
+        # Clear the current list
+        self.reservations_list.clear()
+
+        # Get the date range from the buttons
+        from_date_text = self.from_btn.text().replace("From: ", "").strip()
+        to_date_text = self.to_btn.text().replace("To: ", "").strip()
+
+        # Fetch reservations based on the date range
+        if from_date_text.startswith("From") or to_date_text.startswith("To"):
+            # No valid dates selected, fetch all reservations
+            reservations = self.controller.get_all_reservations()
+        else:
+            # Fetch reservations within the selected date range
+            reservations = self.controller.get_reservations_by_date_interval(from_date_text, to_date_text)
+
+        # Populate the list with reservations
+        for reservation in reservations:
+            self.reservations_list.addItem(
+                f"Reservation ID: {reservation.reservation_id}, Room: {reservation.room_number}, "
+                f"Guest: {reservation.guest_name}, Check-in: {reservation.check_in_date}, "
+                f"Check-out: {reservation.check_out_date}"
+            )
+
+    def handle_selection_change(self):
+        has_selection = bool(self.reservations_list.selectedItems())
+        self.edit_btn.setEnabled(has_selection)
+        self.delete_btn.setEnabled(has_selection)
+
+    def handle_delete_reservation(self):
+        selected_item = self.reservations_list.currentItem()
+        if not selected_item:
+            return
+
+        reservation_id = selected_item.text().split(",")[0].split(":")[1].strip()
+
+        reply = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            f"Are you sure you want to delete reservation {reservation_id}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                self.controller.delete_reservation(reservation_id)
+                self.populate_reservations_list()  # Refresh the list
+                QMessageBox.information(self, "Success", "Reservation deleted successfully!")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to delete reservation: {str(e)}")

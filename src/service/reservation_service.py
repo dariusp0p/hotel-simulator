@@ -12,6 +12,28 @@ class ReservationService:
         self.__repository = reservation_repository
 
 
+    def get_all_reservations(self):
+        return self.__repository.get_all_reservations()
+
+    def get_reservations_by_date_interval(self, from_date, to_date):
+        from_date = datetime.strptime(from_date, "%Y-%m-%d").date()
+        to_date = datetime.strptime(to_date, "%Y-%m-%d").date()
+
+        all_reservations = self.__repository.get_all_reservations()
+        filtered_reservations = [
+            reservation for reservation in all_reservations
+            if not (reservation.check_out_date < from_date or reservation.check_in_date > to_date)
+        ]
+
+        return filtered_reservations
+
+    def get_reservations_by_room_id(self, room_id):
+        return self.__repository.get_reservations_by_room_number(room_id)
+
+
+
+
+
     def make_reservation(self, reservation_data: dict) -> None:
         reservation = Reservation(
             reservation_id=self.generate_reservation_id(reservation_data),
@@ -50,23 +72,17 @@ class ReservationService:
     #         raise e
 
 
-    # def delete_reservation(self, reservation_number: str) -> None:
-    #     try:
-    #         return self.__repository.remove(reservation_number)
-    #     except Exception as e:
-    #         raise e
+    def delete_reservation(self, reservation_id: str) -> None:
+        try:
+            return self.__repository.delete_reservation(reservation_id)
+        except Exception as e:
+            raise e
 
 
-    def get_all_reservations(self):
-        return self.__repository.get_all_reservations()
 
 
-    # def get_reservations_for_room(self, room_number: str) -> dict:
-    #     reservations = {}
-    #     for reservation in self.__repository.get_all():
-    #         if reservation.room_number == room_number:
-    #             reservations[reservation.number] = reservation
-    #     return reservations
+
+
 
 
     def generate_reservation_id(self, reservation_data):
@@ -76,24 +92,4 @@ class ReservationService:
         reservation_id = "R" + reservation_data['room_number'] + check_in_date + check_out_date + code
         return reservation_id
 
-    def get_reservations_by_room_id(self, room_id):
-        return self.__repository.get_reservations_by_room_number(room_id)
 
-
-    # def getIntervals(self, room):
-    #     intervals = []
-    #     for reservation in self.getAll():
-    #         if reservation.room == room:
-    #             intervals.append([reservation.arrivalDate, reservation.departureDate])
-    #     return intervals
-    #
-    #
-
-    #
-    # def getIntervalReservations(self, startDate, endDate):
-    #     reservations = {}
-    #     for reservation in self.getAll():
-    #         overlap = reservation.arrivalDate <= endDate and reservation.departureDate >= startDate
-    #         if overlap:
-    #             reservations[reservation.number] = reservation
-    #     return reservations

@@ -32,6 +32,16 @@ class Controller:
 
         return available_rooms
 
+    def get_all_reservations(self):
+        return self.__reservation_service.get_all_reservations()
+
+    def get_reservations_by_date_interval(self, from_date, to_date):
+        return self.__reservation_service.get_reservations_by_date_interval(from_date, to_date)
+
+
+
+
+
     def make_reservation(self, room_number, guest_name, guest_number, arrival_date, departure_date):
         reservation_data = {
             "room_number": room_number,
@@ -41,3 +51,6 @@ class Controller:
             "check_out_date": departure_date,
         }
         self.__reservation_service.make_reservation(reservation_data)
+
+    def delete_reservation(self, reservation_id):
+        self.__reservation_service.delete_reservation(reservation_id)
