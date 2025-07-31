@@ -103,6 +103,7 @@ class ReservationAdminPage(QWidget):
         self.reserve_btn.setStyleSheet(
             "padding: 10px; font-weight: bold; background-color: #333; color: white"
         )
+        self.reserve_btn.clicked.connect(self.make_reservation)
 
         self.left_layout.addLayout(calendar_and_rooms_layout)
         self.left_layout.addLayout(name_layout)
@@ -198,7 +199,7 @@ class ReservationAdminPage(QWidget):
         else:
             self.check_in_date = date
             self.check_out_date = None
-
+        print(self.check_in_date, self.check_out_date)
         self.highlight_date_range()
 
     def highlight_date_range(self):
@@ -244,8 +245,9 @@ class ReservationAdminPage(QWidget):
 
     def make_reservation(self):
         if not self.controller:
+            print("Problem")
             return
-
+        print("YEAH")
         if not self.check_in_date or not self.check_out_date:
             QMessageBox.warning(self, "Warning", "Please select check-in and check-out dates")
             return
@@ -261,6 +263,7 @@ class ReservationAdminPage(QWidget):
             return
 
         selected_room = selected_items[0].text().split()[1]  # Extract room number
+        print("YEY")
         try:
             self.controller.make_reservation(
                 room_number=selected_room,

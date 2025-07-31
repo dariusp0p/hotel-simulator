@@ -6,6 +6,10 @@ class Controller:
         self.__reservation_service = reservation_service
         self.__hotel_service = hotel_service
 
+    @property
+    def hotel_service(self):
+        return self.__hotel_service
+
 
     def get_available_rooms(self, arrival_date, departure_date, number_of_guests):
         rooms = self.__hotel_service.get_rooms_by_capacity(number_of_guests)
