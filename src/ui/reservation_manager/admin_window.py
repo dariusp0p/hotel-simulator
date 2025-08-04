@@ -425,7 +425,7 @@ class ReservationManagerAdminWindow(QWidget):
             QMessageBox.information(self, "Success", "Reservation created successfully!")
             self.name_input.clear()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to create reservation: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to make reservation: {str(e)}")
 
 
     def edit_reservation(self):

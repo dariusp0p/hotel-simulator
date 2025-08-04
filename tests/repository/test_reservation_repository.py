@@ -37,8 +37,8 @@ def test_add_and_get_reservation(repo):
     assert found is not None
     assert found.room_number == "101"
     assert found.guest_name == "Alice"
-    assert repo.get_by_room_number("101")[0] is found
-    assert repo.get_by_guest_name("Alice")[0] is found
+    assert repo.get_reservations_by_room_number("101")[0] is found
+    assert repo.get_reservations_by_guest_name("Alice")[0] is found
 
 def test_duplicate_reservation_id_raises(repo):
     reservation = Reservation(
@@ -102,8 +102,8 @@ def test_delete_nonexistent_reservation_raises(repo):
         repo.delete_reservation("ghost123")
 
 def test_get_by_room_number_and_guest_name_empty(repo):
-    assert repo.get_by_room_number("999") is None
-    assert repo.get_by_guest_name("NoOne") is None
+    assert repo.get_reservations_by_room_number("999") is None
+    assert repo.get_reservations_by_guest_name("NoOne") is None
 
 def test_delete_operational_error(repo):
     reservation = Reservation(
@@ -159,5 +159,5 @@ def test_cache_cleanup_on_delete(repo):
     )
     repo.add_reservation(reservation)
     repo.delete_reservation("unique1")
-    assert repo.get_by_room_number("301") is None
-    assert repo.get_by_guest_name("CleanupGuest") is None
+    assert repo.get_reservations_by_room_number("301") is None
+    assert repo.get_reservations_by_guest_name("CleanupGuest") is None

@@ -42,8 +42,6 @@ class MainWindow(QMainWindow):
 
         self.stack.setCurrentWidget(self.main_menu)
 
-    def show_reservation_admin(self):
-        self.stack.setCurrentWidget(self.reservation_admin)
 
     def show_main_menu(self):
         self.stack.setCurrentWidget(self.main_menu)
