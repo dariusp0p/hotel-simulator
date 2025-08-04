@@ -1,7 +1,8 @@
 import sqlite3
 from datetime import datetime
+from webbrowser import Error
 
-from src.utilities.exceptions import (ReservationAlreadyExistsError, ReservationNotFoundError, DatabaseUnavailableError)
+from src.utilities.exceptions import (RepositoryError, ReservationAlreadyExistsError, ReservationNotFoundError, DatabaseUnavailableError)
 from src.domain.reservation import Reservation
 from src.db import reservation_model as db
 
@@ -24,19 +25,25 @@ class ReservationRepository:
         return self.__connection
 
 
+    # Data persistence
     def load_from_db(self):
-        reservations = db.get_all_reservations(self.__connection)
-        for row in reservations:
-            reservation = Reservation(
-                db_id=row[0],
-                reservation_id=row[1],
-                room_number=row[2],
-                guest_name=row[3],
-                number_of_guests=row[4],
-                check_in_date=datetime.strptime(row[5], "%Y-%m-%d").date(),
-                check_out_date=datetime.strptime(row[6], "%Y-%m-%d").date(),
-            )
-            self.add_to_cache(reservation)
+        try:
+            reservations = db.get_all_reservations(self.__connection)
+            for row in reservations:
+                reservation = Reservation(
+                    db_id=row[0],
+                    reservation_id=row[1],
+                    room_number=row[2],
+                    guest_name=row[3],
+                    number_of_guests=row[4],
+                    check_in_date=datetime.strptime(row[5], "%Y-%m-%d").date(),
+                    check_out_date=datetime.strptime(row[6], "%Y-%m-%d").date(),
+                )
+                self.add_to_cache(reservation)
+        except sqlite3.OperationalError:
+            raise DatabaseUnavailableError("Database is unavailable or corrupted.")
+        except Error:
+            raise RepositoryError("An error occurred while loading reservations from the database.")
 
 
     def add_to_cache(self, reservation: Reservation):
@@ -72,6 +79,21 @@ class ReservationRepository:
                 pass
 
 
+    # Getters
+    def get_all_reservations(self):
+        return list(self.__by_reservation_id.values())
+
+    def get_by_reservation_id(self, reservation_id):
+        return self.__by_reservation_id.get(reservation_id)
+
+    def get_reservations_by_room_number(self, room_number):
+        return self.__by_room_number.get(room_number, [])
+
+    def get_reservations_by_guest_name(self, guest_name):
+        return self.__by_guest_name.get(guest_name, [])
+
+
+    # CRUD
     def add_reservation(self, reservation: Reservation):
         try:
             db.add_reservation(
@@ -91,19 +113,8 @@ class ReservationRepository:
             raise ReservationAlreadyExistsError(f"Reservation with id {reservation.reservation_id} already exists.")
         except sqlite3.OperationalError:
             raise DatabaseUnavailableError("Database is unavailable or corrupted.")
-
-    def get_all_reservations(self):
-        return list(self.__by_reservation_id.values())
-
-    def get_by_reservation_id(self, reservation_id):
-        return self.__by_reservation_id.get(reservation_id)
-
-    def get_by_room_number(self, room_nr):
-        return self.__by_room_number.get(room_nr)
-
-    def get_by_guest_name(self, guest_name):
-        return self.__by_guest_name.get(guest_name)
-
+        except Exception:
+            raise RepositoryError("An error occurred while adding the reservation.")
 
     def update_reservation(self, reservation: Reservation):
         old_reservation = self.__by_reservation_id.get(reservation.reservation_id)
@@ -112,7 +123,7 @@ class ReservationRepository:
         try:
             db.update_reservation(
                 self.__connection,
-                reservation.db_id,
+                old_reservation.db_id,
                 reservation.reservation_id,
                 reservation.room_number,
                 reservation.guest_name,
@@ -124,9 +135,8 @@ class ReservationRepository:
             self.add_to_cache(reservation)
         except sqlite3.OperationalError:
             raise DatabaseUnavailableError("Database is unavailable or corrupted.")
-
-    def get_reservations_by_room_number(self, room_number):
-        return self.__by_room_number.get(room_number, [])
+        except Exception:
+            raise RepositoryError("An error occurred while updating the reservation.")
 
     def delete_reservation(self, reservation_id: str):
         reservation = self.__by_reservation_id.get(reservation_id)
@@ -137,3 +147,5 @@ class ReservationRepository:
             self.remove_from_cache(reservation)
         except sqlite3.OperationalError:
             raise DatabaseUnavailableError("Database is unavailable or corrupted.")
+        except Exception:
+            raise RepositoryError("An error occurred while deleting reservation.")

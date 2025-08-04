@@ -13,6 +13,7 @@ from PyQt6.QtGui import QPalette, QColor
 
 from src.ui.components.app_button import AppButton
 from src.ui.components.custom_switch import CustomSwitch
+from src.utilities.user import User
 
 
 class MainMenuPage(QWidget):
@@ -162,15 +163,18 @@ class MainMenuPage(QWidget):
         self.main_layout.addLayout(self.user_container_layout)
 
     def update_button_states(self):
-        name_entered = self.name_input.text().strip() != ""
+        username = self.name_input.text().strip()
         is_admin = self.admin_switch.isChecked()
+
+        User.username = username
+        User.is_admin = is_admin
 
         if is_admin:
             self.reservation_btn.unlock()
             self.simulator_btn.unlock()
             self.configurator_btn.unlock()
         else:
-            if name_entered:
+            if username:
                 self.reservation_btn.unlock()
             else:
                 self.reservation_btn.lock()

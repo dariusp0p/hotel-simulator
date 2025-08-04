@@ -18,17 +18,6 @@ def create_reservation_model(connection):
     connection.commit()
 
 
-def add_reservation(connection, reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date):
-    try:
-        cursor = connection.cursor()
-        cursor.execute("""
-            INSERT INTO reservations (reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)
-        """, (reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date))
-        connection.commit()
-    except sqlite3.IntegrityError as e:
-        raise e
-    except sqlite3.OperationalError as e:
-        raise e
 
 def get_all_reservations(connection):
     try:
@@ -47,6 +36,19 @@ def get_reservation_by_reservation_id(connection, reservation_id):
             SELECT * FROM reservations WHERE reservation_id = ?
         """, (reservation_id,))
         return cursor.fetchone()
+    except sqlite3.OperationalError as e:
+        raise e
+
+
+def add_reservation(connection, reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO reservations (reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)
+        """, (reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date))
+        connection.commit()
+    except sqlite3.IntegrityError as e:
+        raise e
     except sqlite3.OperationalError as e:
         raise e
 
