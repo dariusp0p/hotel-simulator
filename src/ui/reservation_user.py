@@ -126,9 +126,6 @@ class ReservationUserPage(QWidget):
         self.right_layout.addWidget(self.reservations_box)
         self.right_layout.addWidget(self.cancel_btn)
 
-        self.populate_reservations_list()
-
-
 
     def handle_back_click(self):
         if self.on_back:
@@ -175,15 +172,12 @@ class ReservationUserPage(QWidget):
 
         self.available_rooms.clear()
 
-        # Fetch available rooms from the controller
         available_rooms = self.controller.get_available_rooms(
             self.check_in_date.toString("yyyy-MM-dd"),
             self.check_out_date.toString("yyyy-MM-dd"),
             self.guest_spin.value()
         )
-        self.populate_reservations_list()
 
-        # Populate the available rooms list
         for room in available_rooms:
             self.available_rooms.addItem(f"Room {room[1]} - Capacity: {room[4]}")
 
@@ -198,36 +192,31 @@ class ReservationUserPage(QWidget):
             self.check_out_date = None
 
         self.highlight_date_range()
-        self.update_available_rooms()  # Refresh available rooms
+        self.update_available_rooms()
 
     def make_reservation(self):
         if not self.controller:
             QMessageBox.critical(self, "Error", "Controller is not available.")
             return
 
-        # Validate check-in and check-out dates
         if not self.check_in_date or not self.check_out_date:
             QMessageBox.warning(self, "Warning", "Please select check-in and check-out dates.")
             return
 
-        # Validate room selection
         selected_items = self.available_rooms.selectedItems()
         if not selected_items:
             QMessageBox.warning(self, "Warning", "Please select a room.")
             return
 
-        # Validate guest name
         guest_name = User.username
         print(guest_name)
         if not guest_name:
             QMessageBox.warning(self, "Warning", "Guest name is not available.")
             return
 
-        # Extract room number from the selected item
-        selected_room = selected_items[0].text().split()[1]  # Extract room number
+        selected_room = selected_items[0].text().split()[1]
 
         try:
-            # Call the controller to make the reservation
             self.controller.make_reservation(
                 room_number=selected_room,
                 guest_name=guest_name,
@@ -236,7 +225,7 @@ class ReservationUserPage(QWidget):
                 departure_date=self.check_out_date.toString("yyyy-MM-dd")
             )
             QMessageBox.information(self, "Success", "Reservation created successfully!")
-            self.update_available_rooms()  # Refresh available rooms
+            self.update_available_rooms()
             self.populate_reservations_list()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to create reservation: {str(e)}")
@@ -245,7 +234,6 @@ class ReservationUserPage(QWidget):
         self.reservations_list.clear()
 
         try:
-            # Fetch reservations for the current user
             username = User.username
             if not username:
                 QMessageBox.warning(self, "Warning", "Guest name is not set.")
@@ -280,9 +268,8 @@ class ReservationUserPage(QWidget):
 
         if reply == QMessageBox.StandardButton.Yes:
             try:
-                # Call the controller to delete the reservation
                 self.controller.delete_reservation(reservation_id)
                 QMessageBox.information(self, "Success", "Reservation canceled successfully!")
-                self.populate_reservations_list()  # Refresh the list
+                self.populate_reservations_list()
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to cancel reservation: {str(e)}")

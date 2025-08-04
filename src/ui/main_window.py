@@ -56,4 +56,6 @@ class MainWindow(QMainWindow):
         if is_admin:
             self.stack.setCurrentWidget(self.reservation_admin)
         else:
+            self.reservation_user.populate_reservations_list()
             self.stack.setCurrentWidget(self.reservation_user)
+
