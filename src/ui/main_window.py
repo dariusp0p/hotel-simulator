@@ -1,9 +1,8 @@
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget
 from src.ui.main_menu import MainMenuPage
-from src.ui.reservation_admin import ReservationAdminPage
-from src.ui.reservation_user import ReservationUserPage
+from src.ui.reservation_manager.admin_window import ReservationManagerAdminWindow
+from src.ui.reservation_manager.user_window import ReservationManagerUserWindow
 from src.ui.hotel_configurator import HotelConfiguratorPage
-from src.service.controller import Controller
 
 
 class MainWindow(QMainWindow):
@@ -21,12 +20,12 @@ class MainWindow(QMainWindow):
             on_configurator_click=self.show_hotel_configurator,
         )
 
-        self.reservation_admin = ReservationAdminPage(
+        self.reservation_admin = ReservationManagerAdminWindow(
             on_back=self.show_main_menu,
             controller=controller
         )
 
-        self.reservation_user = ReservationUserPage(
+        self.reservation_user = ReservationManagerUserWindow(
             on_back=self.show_main_menu,
             controller=controller
         )
@@ -56,6 +55,6 @@ class MainWindow(QMainWindow):
         if is_admin:
             self.stack.setCurrentWidget(self.reservation_admin)
         else:
-            self.reservation_user.populate_reservations_list()
+            self.reservation_user.populate_reservation_list()
             self.stack.setCurrentWidget(self.reservation_user)
 

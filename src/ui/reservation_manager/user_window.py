@@ -20,7 +20,8 @@ from PyQt6.QtGui import QTextCharFormat, QColor
 from src.utilities.user import User
 
 
-class ReservationUserPage(QWidget):
+
+class ReservationManagerUserWindow(QWidget):
     def __init__(self, on_back=None, controller=None):
         super().__init__()
         self.on_back = on_back
@@ -29,6 +30,11 @@ class ReservationUserPage(QWidget):
         self.check_in_date = None
         self.check_out_date = None
 
+        self.setup_ui()
+
+
+    # Setup
+    def setup_ui(self):
         self.setStyleSheet("background-color: #bfbfbf;")
 
         self.main_layout = QVBoxLayout()
@@ -57,20 +63,25 @@ class ReservationUserPage(QWidget):
         self.main_layout.addLayout(self.top_bar)
         self.main_layout.addLayout(self.content_layout)
 
+
     def setup_left_side(self):
+        # Date selector
         date_group = QGroupBox("Date Selector")
         date_layout = QVBoxLayout()
+
         self.calendar = QCalendarWidget()
         self.calendar.setSelectedDate(QDate.currentDate())
         self.calendar.clicked.connect(self.handle_date_click)
-        self.calendar.selectionChanged.connect(self.update_available_rooms)  # Refresh on calendar change
+        self.calendar.selectionChanged.connect(self.populate_available_rooms_list)  # Refresh on calendar change
+
         date_layout.addWidget(self.calendar)
         date_group.setLayout(date_layout)
 
+        # Number of guests
         self.guest_spin = QSpinBox()
         self.guest_spin.setMinimum(1)
         self.guest_spin.setMaximum(20)
-        self.guest_spin.valueChanged.connect(self.update_available_rooms)  # Refresh on guest count change
+        self.guest_spin.valueChanged.connect(self.populate_available_rooms_list)  # Refresh on guest count change
         guest_box = QGroupBox("Number of guests")
         guest_layout = QVBoxLayout()
         guest_layout.addWidget(self.guest_spin)
@@ -80,6 +91,7 @@ class ReservationUserPage(QWidget):
         calendar_guest_layout.addWidget(date_group)
         calendar_guest_layout.addWidget(guest_box)
 
+        # Available Rooms List
         self.rooms_box = QGroupBox("Available Rooms")
         self.available_rooms = QListWidget()
         room_layout = QVBoxLayout()
@@ -90,6 +102,7 @@ class ReservationUserPage(QWidget):
         calendar_and_rooms_layout.addLayout(calendar_guest_layout, 2)
         calendar_and_rooms_layout.addWidget(self.rooms_box, 2)
 
+        # Make a reservation
         self.reserve_btn = QPushButton("Make a reservation")
         self.reserve_btn.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
@@ -103,15 +116,20 @@ class ReservationUserPage(QWidget):
         self.left_layout.addStretch()
         self.left_layout.addWidget(self.reserve_btn)
 
+
     def setup_right_side(self):
         self.reservations_box = QGroupBox("Your Reservations")
         main_res_layout = QVBoxLayout()
 
-        self.reservations_list = QListWidget()
-        self.reservations_list.setSizePolicy(
+        # Reservation List
+        self.reservation_list = QListWidget()
+        self.reservation_list.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
-        main_res_layout.addWidget(self.reservations_list)
+        self.reservation_list.itemSelectionChanged.connect(self.handle_selection_change)
+
+        main_res_layout.addWidget(self.reservation_list)
+
         self.reservations_box.setLayout(main_res_layout)
 
         self.cancel_btn = QPushButton("Cancel Reservation")
@@ -121,16 +139,23 @@ class ReservationUserPage(QWidget):
         self.cancel_btn.setStyleSheet(
             "padding: 8px; font-weight: bold; background-color: red; color: white"
         )
-        self.cancel_btn.clicked.connect(self.handle_delete_reservation)
+        self.cancel_btn.setEnabled(False)
+        self.cancel_btn.clicked.connect(self.cancel_reservation)
 
         self.right_layout.addWidget(self.reservations_box)
         self.right_layout.addWidget(self.cancel_btn)
 
+        self.populate_reservation_list()
 
+
+    # Handlers
+
+    # Top
     def handle_back_click(self):
         if self.on_back:
             self.on_back()
 
+    # Left
     def handle_date_click(self, date):
         if not self.check_in_date or (self.check_in_date and self.check_out_date):
             self.check_in_date = date
@@ -142,6 +167,7 @@ class ReservationUserPage(QWidget):
             self.check_out_date = None
 
         self.highlight_date_range()
+        self.populate_available_rooms_list()
 
     def highlight_date_range(self):
         default_format = QTextCharFormat()
@@ -166,11 +192,11 @@ class ReservationUserPage(QWidget):
                 if d < self.check_out_date:
                     self.calendar.setDateTextFormat(d, fmt_between)
 
-    def update_available_rooms(self):
-        if not self.controller or not self.check_in_date or not self.check_out_date:
-            return
-
+    def populate_available_rooms_list(self):
         self.available_rooms.clear()
+
+        if not self.check_in_date or not self.check_out_date:
+            return
 
         available_rooms = self.controller.get_available_rooms(
             self.check_in_date.toString("yyyy-MM-dd"),
@@ -179,26 +205,29 @@ class ReservationUserPage(QWidget):
         )
 
         for room in available_rooms:
-            self.available_rooms.addItem(f"Room {room[1]} - Capacity: {room[4]}")
+            self.available_rooms.addItem(f"Room {room[1]} | {room[4]} Beds")
 
-    def handle_date_click(self, date):
-        if not self.check_in_date or (self.check_in_date and self.check_out_date):
-            self.check_in_date = date
-            self.check_out_date = None
-        elif date > self.check_in_date:
-            self.check_out_date = date
-        else:
-            self.check_in_date = date
-            self.check_out_date = None
+    # Right
+    def handle_selection_change(self):
+        has_selection = bool(self.reservation_list.selectedItems())
+        self.cancel_btn.setEnabled(has_selection)
 
-        self.highlight_date_range()
-        self.update_available_rooms()
+    def populate_reservation_list(self):
+        self.reservation_list.clear()
 
+        username = User.username
+
+        reservations = self.controller.get_reservations_by_guest_name(username) or []
+        for reservation in reservations:
+            self.reservation_list.addItem(
+                f"{reservation.reservation_id} | {reservation.room_number} | "
+                f"{reservation.guest_name} | {reservation.check_in_date} | "
+                f"{reservation.check_out_date} | {reservation.number_of_guests} | "
+            )
+
+
+    # CRUD
     def make_reservation(self):
-        if not self.controller:
-            QMessageBox.critical(self, "Error", "Controller is not available.")
-            return
-
         if not self.check_in_date or not self.check_out_date:
             QMessageBox.warning(self, "Warning", "Please select check-in and check-out dates.")
             return
@@ -209,7 +238,6 @@ class ReservationUserPage(QWidget):
             return
 
         guest_name = User.username
-        print(guest_name)
         if not guest_name:
             QMessageBox.warning(self, "Warning", "Guest name is not available.")
             return
@@ -224,41 +252,18 @@ class ReservationUserPage(QWidget):
                 arrival_date=self.check_in_date.toString("yyyy-MM-dd"),
                 departure_date=self.check_out_date.toString("yyyy-MM-dd")
             )
+            self.populate_reservation_list()
             QMessageBox.information(self, "Success", "Reservation created successfully!")
-            self.update_available_rooms()
-            self.populate_reservations_list()
+            self.populate_available_rooms_list()
+            self.populate_reservation_list()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to create reservation: {str(e)}")
 
-    def populate_reservations_list(self):
-        self.reservations_list.clear()
+    def cancel_reservation(self):
+        selected_item = self.reservation_list.currentItem()
 
-        try:
-            username = User.username
-            if not username:
-                QMessageBox.warning(self, "Warning", "Guest name is not set.")
-                return
+        reservation_id = selected_item.text().split(" | ")[0].strip()
 
-            reservations = self.controller.get_reservations_by_guest_name(username) or []
-            for reservation in reservations:
-                self.reservations_list.addItem(
-                    f"Reservation ID: {reservation.reservation_id}, Room: {reservation.room_number}, "
-                    f"Guest: {reservation.guest_name}, Check-in: {reservation.check_in_date}, "
-                    f"Check-out: {reservation.check_out_date}"
-                )
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to fetch reservations: {str(e)}")
-
-    def handle_delete_reservation(self):
-        selected_item = self.reservations_list.currentItem()
-        if not selected_item:
-            QMessageBox.warning(self, "Warning", "Please select a reservation to cancel.")
-            return
-
-        # Extract the reservation ID from the selected item
-        reservation_id = selected_item.text().split(",")[0].split(":")[1].strip()
-
-        # Confirm cancellation
         reply = QMessageBox.question(
             self,
             "Confirm Cancellation",
@@ -269,7 +274,7 @@ class ReservationUserPage(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 self.controller.delete_reservation(reservation_id)
+                self.populate_reservation_list()
                 QMessageBox.information(self, "Success", "Reservation canceled successfully!")
-                self.populate_reservations_list()
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to cancel reservation: {str(e)}")

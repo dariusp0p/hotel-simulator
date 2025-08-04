@@ -44,6 +44,54 @@ class Controller:
     def get_reservations_by_guest_name(self, guest_name):
         return self.__reservation_service.get_reservations_by_guest_name(guest_name)
 
+    def get_reservations_by_room_name(self, room_name):
+        return self.__reservation_service.get_reservations_by_room_id(room_name)
+
+
+    def reservation_search(self, search_bar_string=None, from_date=None, to_date=None):
+        results = []
+
+        for reservation in self.__reservation_service.get_all_reservations():
+            if search_bar_string in reservation.reservation_id or search_bar_string.lower() in reservation.guest_name.lower() or search_bar_string.lower() in reservation.room_number.lower():
+                results.append(reservation)
+
+        if from_date:
+            filtered_results = [
+                res for res in results
+                if res.check_out_date >= from_date
+            ]
+            results = filtered_results
+
+        if to_date:
+            filtered_results = [
+                res for res in results
+                if res.check_in_date <= to_date
+            ]
+            results = filtered_results
+
+        return results
+
+    def reservation_direct_search(self, search_bar_string):
+        results = []
+
+        reservation_by_id = self.__reservation_service.get_reservation_by_id(search_bar_string)
+        if reservation_by_id:
+            results.append(reservation_by_id)
+            return results
+
+        reservations_by_guest_name = self.__reservation_service.get_reservations_by_guest_name(search_bar_string)
+        if reservations_by_guest_name:
+            results.extend(reservations_by_guest_name)
+            return results
+
+        reservations_by_room_name = self.__reservation_service.get_reservations_by_room_id(search_bar_string)
+        if reservations_by_room_name:
+            results.extend(reservations_by_room_name)
+            return results
+
+        return results
+
+
 
     def make_reservation(self, room_number, guest_name, guest_number, arrival_date, departure_date):
         reservation_data = {
@@ -56,6 +104,9 @@ class Controller:
         self.__reservation_service.make_reservation(reservation_data)
 
     def update_reservation(self, reservation_id, room_number, guest_name, guest_number, arrival_date, departure_date):
+        # if not self.hotel_service.is_room_available(room_number, arrival_date, departure_date):
+        #     raise Exception("Room not available")
+
         reservation_data = {
             "reservation_id": reservation_id,
             "room_number": room_number,
