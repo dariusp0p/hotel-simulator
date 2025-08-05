@@ -1,7 +1,7 @@
 class FloorElement:
-    def __init__(self, db_id=None, element_type=None, floor_id=None, position=None):
+    def __init__(self, db_id=None, type=None, floor_id=None, position=None):
         self.__db_id = db_id
-        self.__element_type = element_type
+        self.__type = type
         self.__floor_id = floor_id
         self.__position = position
 
@@ -14,8 +14,8 @@ class FloorElement:
         self.__db_id = db_id
 
     @property
-    def element_type(self):
-        return self.__element_type
+    def type(self):
+        return self.__type
 
     @property
     def floor_id(self):

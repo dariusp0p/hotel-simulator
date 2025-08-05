@@ -3,20 +3,21 @@ from src.domain.floor_element import FloorElement
 
 
 class Room(FloorElement):
-    def __init__(self, db_id=None, element_type=None, floor_id=None, position=None,
-                 room_number=None, capacity=None, price_per_night=None):
-        super().__init__(db_id, element_type, floor_id, position)
-        self.__room_number = room_number
+    def __init__(self, db_id=None, type=None, floor_id=None, position=None,
+                 number=None, capacity=None, price_per_night=None):
+        super().__init__(db_id, type, floor_id, position)
+        self.__number = number
         self.__capacity = capacity
         self.__price_per_night = price_per_night
 
 
+
     @property
-    def room_number(self):
-        return self.__room_number
-    @room_number.setter
-    def room_number(self, room_number):
-        self.__room_number = room_number
+    def number(self):
+        return self.__number
+    @number.setter
+    def number(self, room_number):
+        self.__number = room_number
 
     @property
     def capacity(self):
