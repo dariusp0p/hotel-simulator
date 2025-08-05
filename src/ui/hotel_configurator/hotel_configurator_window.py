@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QListWidget, QListWidgetItem
+    QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QListWidget, QListWidgetItem,
+    QInputDialog
 )
 from PyQt6.QtCore import Qt, QPoint, QRectF, QSize
 from PyQt6.QtGui import QPainter, QTransform, QWheelEvent, QColor, QPen, QFont
@@ -451,9 +452,28 @@ class HotelConfiguratorWindow(QMainWindow):
         # This will be implemented later
 
     def on_add_floor(self):
-        # Placeholder for adding a floor
-        # This would typically open a dialog to get floor details
-        pass
+        """Handle adding a new floor with a dialog for name input"""
+        dialog_title = "Add New Floor"
+        dialog_prompt = "Enter floor name:"
+
+        # Display input dialog with text field
+        floor_name, ok = QInputDialog.getText(
+            self, dialog_title, dialog_prompt
+        )
+
+        # If user clicked OK and provided a name
+        if ok and floor_name.strip():
+            # In a real implementation, you would add the floor to the model/controller
+            # For now, just add it to the list
+            item = QListWidgetItem(floor_name)
+            # Create a placeholder floor object (would be created by controller in real implementation)
+            from src.domain.floor import Floor
+            new_floor = Floor(0, floor_name, 0)  # Using dummy values for id and elevation
+            item.setData(Qt.ItemDataRole.UserRole, new_floor)
+            self.floor_list.addItem(item)
+
+            # Select the new floor
+            self.floor_list.setCurrentItem(item)
 
     def on_remove_floor(self):
         # Get the currently selected floor and remove it

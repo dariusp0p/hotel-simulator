@@ -57,11 +57,7 @@ class Controller:
 
 
     def get_sidebar_floors(self):
-        from src.domain.floor import Floor
-        floor1 = Floor(1 ,"Ground", 0)
-        floor2 = Floor(2, "First", 0)
-        floor3 = Floor(3, "Second", 0)
-        return [floor1, floor2, floor3]
+        return self.__hotel_service.get_all_floors_sorted_by_level()
 
 
 

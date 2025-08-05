@@ -13,7 +13,7 @@ class HotelService:
     # Getters
     def get_all_floors_sorted_by_level(self):
         floors = self.__repository.get_all_floors()
-        return floors.sort(key=lambda floor: floor.level, reverse=True)
+        return sorted(floors, key=lambda floor: floor.level, reverse=True)
 
     def get_floor_id(self, floor_name):
         return self.__repository.get_floor_id(floor_name)

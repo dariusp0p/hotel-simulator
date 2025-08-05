@@ -33,7 +33,7 @@ class HotelRepository:
         floors = db.select_all_floors(self.__connection)
 
         for db_id, name, level in floors:
-            floor = Floor(id, name, level)
+            floor = Floor(db_id, name, level)
             elements = db.select_elements_by_floor_id(self.__connection, db_id)
             for row in elements:
                 if row[1] == "room":
