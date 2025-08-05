@@ -9,12 +9,26 @@ class HotelService:
     def __init__(self, repository: HotelRepository):
         self.__repository = repository
 
-    def get_floors(self):
-        return self.__repository.get_floors()
+
+    # Getters
+    def get_all_floors_sorted_by_level(self):
+        floors = self.__repository.get_all_floors()
+        return floors.sort(key=lambda floor: floor.level, reverse=True)
 
     def get_floor_id(self, floor_name):
         return self.__repository.get_floor_id(floor_name)
 
+    def get_floor_grid(self, floor_name):
+        return self.__repository.get_floor_grid(floor_name)
+
+    def get_rooms_by_capacity(self, capacity):
+        #TODO
+        pass
+
+
+    # CRUD
+
+    # Floors
     def add_floor(self, floor_name):
         self.__repository.add_floor(Floor(name=floor_name))
         # Adaugă automat o scară în centrul grilei
@@ -32,12 +46,7 @@ class HotelService:
     def remove_floor(self, floor_name):
         self.__repository.remove_floor(floor_name)
 
-    def get_floor_grid(self, floor_name):
-        return self.__repository.get_floor_grid(floor_name)
-
-    def get_rooms_by_capacity(self, capacity):
-        return self.__repository.get_rooms_by_capacity(capacity)
-
+    # Elements
     def add_element(self, element_data):
         floor_element = FloorElement(
             element_id=self.generate_element_id(element_data),
@@ -59,11 +68,3 @@ class HotelService:
 
     def remove_element(self, element_id):
         self.__repository.remove_element(element_id)
-
-    def generate_element_id(self, element_data):
-        prefix = {"staircase": "S", "hallway": "H", "room": "R"}.get(
-            element_data["element_type"], "X"
-        )
-        floor_id = str(element_data["floor_id"])
-        code = str(randint(100, 999))
-        return f"{prefix}{floor_id}{code}"

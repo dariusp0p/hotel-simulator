@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from src.ui.floor_canvas import FloorCanvas
+from src.ui.hotel_configurator.floor_canvas import FloorCanvas
 
 
 class AddFloorDialog(QDialog):

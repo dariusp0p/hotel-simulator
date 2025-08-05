@@ -67,9 +67,10 @@ class HotelRepository:
         for element_id_1, element_id_2 in connections:
             self.__graph.add_edge(element_id_1, element_id_2)
 
+
     # Getters
-    def get_all_floor_names(self):
-        return list(self.__floors_by_name.keys())
+    def get_all_floors(self):
+        return list(self.__floors_by_id.values())
 
     def get_floor_grid(self, floor_name):
         return self.__floors_by_name[floor_name].grid

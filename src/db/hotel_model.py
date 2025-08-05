@@ -7,7 +7,7 @@ def create_hotel_model(connection):
         CREATE TABLE IF NOT EXISTS floors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
-            level INTEGER NOT NULL,
+            level INTEGER NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS elements (
@@ -28,7 +28,7 @@ def create_hotel_model(connection):
             PRIMARY KEY (element_id_1, element_id_2),
             FOREIGN KEY (element_id_1) REFERENCES floor_elements(id),
             FOREIGN KEY (element_id_2) REFERENCES floor_elements(id)
-        )
+        );
     """)
     connection.commit()
 
