@@ -40,11 +40,11 @@ class HotelService:
         # }
         # self.add_element(element_data)
 
-    def update_floor_level(self, floor_id, new_level):
-        self.__repository.move_floor(floor_id, new_level)
-
     def rename_floor(self, old_name, new_name):
         self.__repository.rename_floor(old_name, new_name)
+
+    def update_floor_level(self, floor_id, new_level):
+        self.__repository.move_floor(floor_id, new_level)
 
     def remove_floor(self, floor_id):
         floor_elements = self.__repository.get_elements_by_floor_id(floor_id)

@@ -111,6 +111,12 @@ class Controller:
         except Exception as e:
             raise e
 
+    def rename_floor(self, old_name, new_name):
+        try:
+            self.__hotel_service.rename_floor(old_name, new_name)
+        except Exception as e:
+            raise e
+
     def update_floor_level(self, floor_id, new_level):
         try:
             self.__hotel_service.update_floor_level(floor_id, new_level)

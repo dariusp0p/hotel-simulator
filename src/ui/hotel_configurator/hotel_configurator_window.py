@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QListWidget, QListWidgetItem,
-    QInputDialog, QMessageBox
+    QInputDialog, QMessageBox, QLineEdit
 )
 from PyQt6.QtCore import Qt, QPoint, QRectF, QSize, pyqtSignal
 from PyQt6.QtGui import QPainter, QTransform, QWheelEvent, QColor, QPen, QFont
@@ -347,9 +347,33 @@ class HotelConfiguratorWindow(QMainWindow):
         selected_floor_separator.setFrameShadow(QFrame.Shadow.Sunken)
         selected_floor_separator.setStyleSheet("background-color: #777;")
 
-        # Selected floor content placeholder
+        # Selected floor content
         self.selected_floor_panel = QWidget()
         self.selected_floor_panel.setStyleSheet("background-color: #555;")
+        selected_floor_layout = QVBoxLayout(self.selected_floor_panel)
+
+        # Name edit section
+        name_edit_container = QWidget()
+        name_edit_layout = QHBoxLayout(name_edit_container)
+        name_edit_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.floor_name_edit = QLineEdit()
+        self.floor_name_edit.setStyleSheet(
+            "background-color: #444; color: white; border: 1px solid #666; padding: 5px;")
+        self.floor_name_edit.setPlaceholderText("Floor name")
+
+        update_name_btn = QPushButton("Update")
+        update_name_btn.setStyleSheet(
+            "QPushButton {background-color: #4a6ea9; color: white; border: none; padding: 5px;} "
+            "QPushButton:hover {background-color: #5a7eb9;}"
+        )
+        update_name_btn.clicked.connect(self.on_update_floor_name)
+
+        name_edit_layout.addWidget(self.floor_name_edit)
+        name_edit_layout.addWidget(update_name_btn)
+
+        selected_floor_layout.addWidget(name_edit_container)
+        selected_floor_layout.addStretch()
 
         # Add widgets to lower layout
         lower_layout.addWidget(selected_floor_title)
@@ -457,7 +481,31 @@ class HotelConfiguratorWindow(QMainWindow):
 
     def on_floor_selected(self, item):
         self.selected_floor = item.data(Qt.ItemDataRole.UserRole)
-        # TODO
+        # Update the floor name edit field with current name
+        self.floor_name_edit.setText(self.selected_floor.name)
+        self.floor_name_edit.setPlaceholderText(self.selected_floor.name)
+
+    def on_update_floor_name(self):
+        if not self.selected_floor:
+            QMessageBox.warning(self, "Warning", "Please select a floor first")
+            return
+
+        new_name = self.floor_name_edit.text().strip()
+        if not new_name:
+            QMessageBox.warning(self, "Warning", "Please enter floor name")
+            return
+
+        old_name = self.selected_floor.name
+        if new_name == old_name:
+            return
+
+        try:
+            self.controller.rename_floor(old_name, new_name)
+            self.selected_floor.name = new_name
+            self.populate_floor_list()
+            QMessageBox.information(self, "Success", "Floor renamed successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to rename floor: {str(e)}")
 
     def on_add_floor(self):
         floor_name, ok = QInputDialog.getText(

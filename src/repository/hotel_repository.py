@@ -125,7 +125,7 @@ class HotelRepository:
         if not floor:
             raise Exception("Old floor not found")
 
-        db.rename_floor(self.__connection, floor.db_id, new_name)
+        db.update_floor_name(self.__connection, floor.db_id, new_name)
 
         del self.__floors_by_name[old_name]
         floor.name = new_name
