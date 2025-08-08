@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QListWidget, QListWidgetItem,
-    QInputDialog
+    QInputDialog, QMessageBox
 )
-from PyQt6.QtCore import Qt, QPoint, QRectF, QSize
+from PyQt6.QtCore import Qt, QPoint, QRectF, QSize, pyqtSignal
 from PyQt6.QtGui import QPainter, QTransform, QWheelEvent, QColor, QPen, QFont
 
 
@@ -114,6 +114,8 @@ class GridCanvas(QWidget):
 
 
 class FloorListWidget(QListWidget):
+    floorsReordered = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         # Enable drag and drop
@@ -142,6 +144,12 @@ class FloorListWidget(QListWidget):
             }
         """)
 
+    def dropEvent(self, event):
+        # Call parent implementation to handle the visual reordering
+        super().dropEvent(event)
+        # Emit signal that floors have been reordered
+        self.floorsReordered.emit()
+
 
 
 
@@ -161,6 +169,8 @@ class HotelConfiguratorWindow(QMainWindow):
 
         self.setWindowTitle("Hotel Configurator")
         self.resize(1200, 800)
+
+        self.selected_floor = None
 
         # Create main widget
         self.main_widget = QWidget()
@@ -283,6 +293,7 @@ class HotelConfiguratorWindow(QMainWindow):
         # Create floor list widget
         self.floor_list = FloorListWidget()
         self.floor_list.itemClicked.connect(self.on_floor_selected)
+        self.floor_list.floorsReordered.connect(self.on_floors_reordered)
 
         # Create buttons container
         buttons_container = QWidget()
@@ -436,50 +447,65 @@ class HotelConfiguratorWindow(QMainWindow):
             self.on_back()
 
     def populate_floor_list(self):
-        """Populate the floor list from controller data"""
-        if self.controller:
-            self.floor_list.clear()
-            floors = self.controller.get_sidebar_floors()
-            for floor in floors:
-                item = QListWidgetItem(floor.name)
-                item.setData(Qt.ItemDataRole.UserRole, floor)
-                self.floor_list.addItem(item)
+        self.floor_list.clear()
 
-    def on_floor_selected(self, item):
-        """Handle floor selection"""
-        floor = item.data(Qt.ItemDataRole.UserRole)
-        # Update the selected floor panel with floor details
-        # This will be implemented later
-
-    def on_add_floor(self):
-        """Handle adding a new floor with a dialog for name input"""
-        dialog_title = "Add New Floor"
-        dialog_prompt = "Enter floor name:"
-
-        # Display input dialog with text field
-        floor_name, ok = QInputDialog.getText(
-            self, dialog_title, dialog_prompt
-        )
-
-        # If user clicked OK and provided a name
-        if ok and floor_name.strip():
-            # In a real implementation, you would add the floor to the model/controller
-            # For now, just add it to the list
-            item = QListWidgetItem(floor_name)
-            # Create a placeholder floor object (would be created by controller in real implementation)
-            from src.domain.floor import Floor
-            new_floor = Floor(0, floor_name, 0)  # Using dummy values for id and elevation
-            item.setData(Qt.ItemDataRole.UserRole, new_floor)
+        floors = self.controller.get_sidebar_floors()
+        for floor in floors:
+            item = QListWidgetItem(floor.name)
+            item.setData(Qt.ItemDataRole.UserRole, floor)
             self.floor_list.addItem(item)
 
-            # Select the new floor
-            self.floor_list.setCurrentItem(item)
+    def on_floor_selected(self, item):
+        self.selected_floor = item.data(Qt.ItemDataRole.UserRole)
+        # TODO
+
+    def on_add_floor(self):
+        floor_name, ok = QInputDialog.getText(
+            self, "Add New Floor", "Enter floor name:"
+        )
+
+        if not ok:
+            return
+
+        if not floor_name:
+            QMessageBox.warning(self, "Warning", "Please enter floor name")
+            return
+
+        try:
+            self.controller.add_floor(floor_name, self.floor_list.count())
+            self.populate_floor_list()
+            QMessageBox.information(self, "Success", "Floor added successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to add floor: {str(e)}")
+            return
+
+    def on_floors_reordered(self):
+        # Update the levels of all floors based on their new positions
+        for i in range(self.floor_list.count()):
+            item = self.floor_list.item(i)
+            floor = item.data(Qt.ItemDataRole.UserRole)
+            # Set level in reverse order (top item has highest level)
+            new_level = self.floor_list.count() - 1 - i
+
+            # Only update if level changed
+            if floor.level != new_level:
+                try:
+                    self.controller.update_floor_level(floor.db_id, new_level)
+                    # Update the local floor object
+                    floor.level = new_level
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"Failed to update floor order: {str(e)}")
+                    # Refresh the list to show the correct order
+                    self.populate_floor_list()
+                    return
 
     def on_remove_floor(self):
         # Get the currently selected floor and remove it
-        selected_items = self.floor_list.selectedItems()
-        if selected_items:
-            selected_item = selected_items[0]
-            row = self.floor_list.row(selected_item)
-            self.floor_list.takeItem(row)
-            # In a real implementation, you would also update the model/controller
+        selected_floor = self.selected_floor
+        print(selected_floor.db_id, selected_floor.name)
+        try:
+            self.controller.remove_floor(selected_floor.db_id)
+            self.populate_floor_list()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to remove floor: {str(e)}")
+            return

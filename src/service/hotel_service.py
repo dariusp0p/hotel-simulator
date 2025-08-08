@@ -29,22 +29,28 @@ class HotelService:
     # CRUD
 
     # Floors
-    def add_floor(self, floor_name):
-        self.__repository.add_floor(Floor(name=floor_name))
+    def add_floor(self, floor_name, level):
+        self.__repository.add_floor(Floor(name=floor_name, level=level))
         # Adaugă automat o scară în centrul grilei
-        element_data = {
-            "element_type": "staircase",
-            "floor_id": self.__repository.get_floor_id(floor_name),
-            "capacity": 0,
-            "position": (5, 5),
-        }
-        self.add_element(element_data)
+        # element_data = {
+        #     "element_type": "staircase",
+        #     "floor_id": self.__repository.get_floor_id(floor_name),
+        #     "capacity": 0,
+        #     "position": (5, 5),
+        # }
+        # self.add_element(element_data)
+
+    def update_floor_level(self, floor_id, new_level):
+        self.__repository.move_floor(floor_id, new_level)
 
     def rename_floor(self, old_name, new_name):
         self.__repository.rename_floor(old_name, new_name)
 
-    def remove_floor(self, floor_name):
-        self.__repository.remove_floor(floor_name)
+    def remove_floor(self, floor_id):
+        floor_elements = self.__repository.get_elements_by_floor_id(floor_id)
+        for element in floor_elements:
+            self.__repository.remove_element(element.db_id)
+        self.__repository.remove_floor(floor_id)
 
     # Elements
     def add_element(self, element_data):

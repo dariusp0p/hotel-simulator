@@ -86,7 +86,8 @@ class HotelRepository:
             raise Exception("Invalid element IDs")
         return nx.shortest_path(self.__global_graph, from_id, to_id)
 
-
+    def get_elements_by_floor_id(self, floor_id):
+        return self.__floors_by_id[floor_id].elements
 
 
     # CRUD
@@ -96,15 +97,26 @@ class HotelRepository:
         if floor.db_id in self.__floors_by_id or floor.name in self.__floors_by_name:
             raise Exception("Floor already exists")
         try:
-            db.add_floor(self.__connection, floor.name)
-            new_db_row = db.get_floor_by_name(self.__connection, floor.name)
-            floor.db_id = new_db_row[0][0]
+            db_id = db.insert_floor(self.__connection, floor.name, floor.level)
+            floor.db_id = db_id
             self.__floors_by_id[floor.db_id] = floor
             self.__floors_by_name[floor.name] = floor
         except sqlite3.IntegrityError:
             raise Exception(f"NONO")
         except sqlite3.OperationalError:
             raise Exception("Database is unavailable or corrupted.")
+
+    def move_floor(self, floor_id, new_level):
+        if floor_id not in self.__floors_by_id:
+            raise Exception("Floor not found")
+
+        db.update_floor_level(self.__connection, floor_id, new_level)
+
+        floor = self.__floors_by_id[floor_id]
+        floor.level = new_level
+
+        self.__floors_by_id[floor.db_id] = floor
+        self.__floors_by_name[floor.name] = floor
 
     def rename_floor(self, old_name, new_name):
         if new_name in self.__floors_by_name:
@@ -119,15 +131,16 @@ class HotelRepository:
         floor.name = new_name
         self.__floors_by_name[new_name] = floor
 
-    def remove_floor(self, floor_name):
-        floor = self.__floors_by_name.get(floor_name)
-        if not floor:
+    def remove_floor(self, floor_id):
+        if floor_id not in self.__floors_by_id:
             raise Exception("Floor not found")
 
-        db.remove_floor(self.__connection, floor.db_id)
+        db.delete_floor(self.__connection, floor_id)
+
+        floor = self.__floors_by_id[floor_id]
 
         del self.__floors_by_id[floor.db_id]
-        del self.__floors_by_name[floor_name]
+        del self.__floors_by_name[floor.name]
 
 
     # Floor elements

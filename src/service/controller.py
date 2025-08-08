@@ -59,7 +59,8 @@ class Controller:
     def get_sidebar_floors(self):
         return self.__hotel_service.get_all_floors_sorted_by_level()
 
-
+    def get_floor_by_name(self, floor_name):
+        pass
 
     # CRUD
 
@@ -99,5 +100,25 @@ class Controller:
     def delete_reservation(self, reservation_id):
         try:
             self.__reservation_service.delete_reservation(reservation_id)
+        except Exception as e:
+            raise e
+
+
+    # Hotel
+    def add_floor(self, floor_name, level=0):
+        try:
+            self.__hotel_service.add_floor(floor_name, level)
+        except Exception as e:
+            raise e
+
+    def update_floor_level(self, floor_id, new_level):
+        try:
+            self.__hotel_service.update_floor_level(floor_id, new_level)
+        except Exception as e:
+            raise e
+
+    def remove_floor(self, floor_id):
+        try:
+            self.__hotel_service.remove_floor(floor_id)
         except Exception as e:
             raise e
