@@ -62,6 +62,10 @@ class Controller:
     def get_floor_by_name(self, floor_name):
         pass
 
+    def get_floor_grid(self, floor_name):
+        return self.__hotel_service.get_floor_grid(floor_name)
+
+
     # CRUD
 
     # Reservation
@@ -126,5 +130,12 @@ class Controller:
     def remove_floor(self, floor_id):
         try:
             self.__hotel_service.remove_floor(floor_id)
+        except Exception as e:
+            raise e
+
+
+    def add_element(self, element_data):
+        try:
+            self.__hotel_service.add_element(element_data)
         except Exception as e:
             raise e

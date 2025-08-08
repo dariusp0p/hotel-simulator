@@ -50,7 +50,10 @@ class Floor:
         pass
 
     def delete_element(self, element):
-        pass
+        if element.db_id in self.__elements:
+            del self.__elements[element.db_id]
+        if element.position in self.__grid:
+            del self.__grid[element.position]
 
 
     def get_element_neighbors(self, element):

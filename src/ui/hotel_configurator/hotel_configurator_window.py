@@ -2,114 +2,10 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QListWidget, QListWidgetItem,
     QInputDialog, QMessageBox, QLineEdit
 )
-from PyQt6.QtCore import Qt, QPoint, QRectF, QSize, pyqtSignal
-from PyQt6.QtGui import QPainter, QTransform, QWheelEvent, QColor, QPen, QFont
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QFont
 
-
-class GridCanvas(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # Grid properties
-        self.grid_size = 10  # 10x10 grid
-        self.cell_size = 50  # Default cell size in pixels
-        self.scale_factor = 1.0
-        self.offset = QPoint(0, 0)
-        self.last_mouse_pos = QPoint(0, 0)
-        self.is_panning = False
-
-        # Enable mouse tracking for dragging
-        self.setMouseTracking(True)
-
-        # Set focus policy to receive keyboard events
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # Fill background
-        painter.fillRect(self.rect(), QColor(245, 245, 245))
-
-        # Apply zoom and pan transformations
-        transform = QTransform()
-        transform.translate(self.offset.x(), self.offset.y())
-        transform.scale(self.scale_factor, self.scale_factor)
-        painter.setTransform(transform)
-
-        # Calculate grid dimensions
-        grid_width = self.grid_size * self.cell_size
-        grid_height = self.grid_size * self.cell_size
-
-        # Draw the grid background
-        painter.fillRect(0, 0, grid_width, grid_height, QColor(255, 255, 255))
-
-        # Draw grid border
-        painter.setPen(QPen(QColor(50, 50, 50), 2))
-        painter.drawRect(0, 0, grid_width, grid_height)
-
-        # Draw grid lines
-        painter.setPen(QPen(QColor(200, 200, 200)))
-
-        # Draw vertical lines
-        for i in range(1, self.grid_size):
-            x = i * self.cell_size
-            painter.drawLine(x, 0, x, grid_height)
-
-        # Draw horizontal lines
-        for i in range(1, self.grid_size):
-            y = i * self.cell_size
-            painter.drawLine(0, y, grid_width, y)
-
-        # Draw cell coordinates (for debugging)
-        painter.setPen(QPen(QColor(150, 150, 150)))
-        for row in range(self.grid_size):
-            for col in range(self.grid_size):
-                x = col * self.cell_size
-                y = row * self.cell_size
-                painter.drawText(
-                    x + 5, y + 15,
-                    f"{col},{row}"
-                )
-
-    def wheelEvent(self, event: QWheelEvent):
-        # Calculate zoom factor based on wheel delta
-        zoom_factor = 1.1
-        if event.angleDelta().y() > 0:
-            self.scale_factor *= zoom_factor
-        else:
-            self.scale_factor /= zoom_factor
-
-        # Limit scale factor to reasonable values
-        self.scale_factor = max(0.2, min(5.0, self.scale_factor))
-
-        # Update the canvas
-        self.update()
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.is_panning = True
-            self.last_mouse_pos = event.position().toPoint()
-            self.setCursor(Qt.CursorShape.ClosedHandCursor)
-
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.is_panning = False
-            self.setCursor(Qt.CursorShape.ArrowCursor)
-
-    def mouseMoveEvent(self, event):
-        if self.is_panning:
-            delta = event.position().toPoint() - self.last_mouse_pos
-            self.offset += delta
-            self.last_mouse_pos = event.position().toPoint()
-            self.update()
-
-    def reset_view(self):
-        self.scale_factor = 1.0
-        self.offset = QPoint(0, 0)
-        self.update()
-
-
-
+from src.ui.hotel_configurator.grid_canvas_widget import GridCanvas
 
 
 
@@ -178,6 +74,8 @@ class HotelConfiguratorWindow(QMainWindow):
 
         # Create the grid canvas
         self.grid_canvas = GridCanvas()
+
+        self.grid_canvas.elementDeleteRequested.connect(self.confirm_delete_element)
 
         # Create top bar
         self.top_bar = self.create_top_bar()
@@ -403,37 +301,45 @@ class HotelConfiguratorWindow(QMainWindow):
         layout = QHBoxLayout(hot_bar)
         layout.setContentsMargins(10, 5, 10, 5)
 
+        # Add stretch before buttons to center them
+        layout.addStretch()
+
         # Add Room button
         add_room_btn = QPushButton("Add Room")
-        add_room_btn.setFixedSize(120, 40)
+        add_room_btn.setFixedHeight(40)
         add_room_btn.setStyleSheet(
             "QPushButton {background-color: #4a6ea9; color: white; border: none; font-weight: bold; padding: 8px;} "
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
         add_room_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_room_btn.clicked.connect(self.add_room)
 
         # Add Hallway button
         add_hallway_btn = QPushButton("Add Hallway")
-        add_hallway_btn.setFixedSize(120, 40)
+        add_hallway_btn.setFixedHeight(40)
         add_hallway_btn.setStyleSheet(
             "QPushButton {background-color: #4a6ea9; color: white; border: none; font-weight: bold; padding: 8px;} "
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
         add_hallway_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_hallway_btn.clicked.connect(self.add_hallway)
 
         # Add Staircase button
         add_staircase_btn = QPushButton("Add Staircase")
-        add_staircase_btn.setFixedSize(120, 40)
+        add_staircase_btn.setFixedHeight(40)
         add_staircase_btn.setStyleSheet(
             "QPushButton {background-color: #4a6ea9; color: white; border: none; font-weight: bold; padding: 8px;} "
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
         add_staircase_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_staircase_btn.clicked.connect(self.add_staircase)
 
         # Add widgets to layout
         layout.addWidget(add_room_btn)
         layout.addWidget(add_hallway_btn)
         layout.addWidget(add_staircase_btn)
+
+        # Add stretch after buttons to center them
         layout.addStretch()
 
         return hot_bar
@@ -484,6 +390,15 @@ class HotelConfiguratorWindow(QMainWindow):
         # Update the floor name edit field with current name
         self.floor_name_edit.setText(self.selected_floor.name)
         self.floor_name_edit.setPlaceholderText(self.selected_floor.name)
+
+        # Load floor elements from the controller
+        try:
+            floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+            self.grid_canvas.set_floor_elements(floor_grid)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load floor elements: {str(e)}")
+            self.grid_canvas.clear_elements()
+
 
     def on_update_floor_name(self):
         if not self.selected_floor:
@@ -557,3 +472,142 @@ class HotelConfiguratorWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to remove floor: {str(e)}")
             return
+
+    def find_random_free_position(self):
+        if not self.selected_floor:
+            QMessageBox.warning(self, "Warning", "Please select a floor first")
+            return None
+
+        # Get current floor grid
+        floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+
+        # Find all free positions
+        free_positions = []
+        grid_size = self.grid_canvas.grid_size
+        for x in range(grid_size):
+            for y in range(grid_size):
+                if (x, y) not in floor_grid or floor_grid[(x, y)] is None:
+                    free_positions.append((x, y))
+
+        # If no free positions, return None
+        if not free_positions:
+            QMessageBox.warning(self, "Warning", "No free space available on this floor")
+            return None
+
+        # Return a random free position
+        import random
+        return random.choice(free_positions)
+
+    def add_room(self):
+        if not self.selected_floor:
+            QMessageBox.warning(self, "Warning", "Please select a floor first")
+            return
+
+        position = self.find_random_free_position()
+        if position:
+            # try:
+                element_data = {
+                    "type": "room",
+                    "floor_id": self.selected_floor.db_id,
+                    "position": position,
+                    "number": "Nr.",
+                    "capacity": 2,  # Default capacity for new rooms
+                    "price_per_night": 100  # Default price for new rooms
+                }
+                self.controller.hotel_service.add_element(element_data)
+                # Refresh the grid
+                floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid)
+                QMessageBox.information(self, "Success", f"Room added at position {position}")
+            # except Exception as e:
+                # QMessageBox.critical(self, "Error", f"Failed to add room: {str(e)}")
+
+    def add_hallway(self):
+        if not self.selected_floor:
+            QMessageBox.warning(self, "Warning", "Please select a floor first")
+            return
+
+        position = self.find_random_free_position()
+        if position:
+            try:
+                element_data = {
+                    "type": "hallway",
+                    "floor_id": self.selected_floor.db_id,
+                    "position": position,
+                }
+                self.controller.hotel_service.add_element(element_data)
+                # Refresh the grid
+                floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid)
+                QMessageBox.information(self, "Success", f"Hallway added at position {position}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to add hallway: {str(e)}")
+
+    def add_staircase(self):
+        """Add a staircase at a random free position"""
+        if not self.selected_floor:
+            QMessageBox.warning(self, "Warning", "Please select a floor first")
+            return
+
+        position = self.find_random_free_position()
+        if position:
+            try:
+                element_data = {
+                    "type": "staircase",
+                    "floor_id": self.selected_floor.db_id,
+                    "position": position,
+                }
+                self.controller.hotel_service.add_element(element_data)
+                # Refresh the grid
+                floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid)
+                QMessageBox.information(self, "Success", f"Staircase added at position {position}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to add staircase: {str(e)}")
+
+    def confirm_delete_element(self, element_widget):
+        """Show confirmation dialog and delete element if confirmed"""
+
+        element_id = element_widget.element_id
+        floor_elements = {e.db_id: e for e in self.selected_floor.elements}
+        element = floor_elements.get(element_id)
+
+        if not element:
+            QMessageBox.critical(
+                self,
+                "Error",
+                "Failed to find the corresponding FloorElement."
+            )
+            return
+
+        element_type = element.type.capitalize()
+
+        reply = QMessageBox.question(
+            self,
+            f"Delete {element_type}",
+            f"Are you sure you want to delete this {element_type.lower()}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                # Delete the element using the controller
+                self.controller.hotel_service.remove_element(element)
+
+                # Refresh the grid to show the updated floor
+                floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid)
+                self.grid_canvas.update()
+
+                QMessageBox.information(
+                    self,
+                    "Success",
+                    f"{element_type} successfully deleted!"
+                )
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Failed to delete {element_type.lower()}: {str(e)}"
+                )

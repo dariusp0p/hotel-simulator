@@ -1,5 +1,6 @@
 from random import randint
 from src.domain.floor import Floor
+from src.domain.room import Room
 from src.domain.floor_element import FloorElement
 from src.repository.hotel_repository import HotelRepository
 from src.utilities.exceptions import ValidationError
@@ -54,17 +55,27 @@ class HotelService:
 
     # Elements
     def add_element(self, element_data):
-        floor_element = FloorElement(
-            element_id=self.generate_element_id(element_data),
-            element_type=element_data["element_type"],
-            floor_id=element_data["floor_id"],
-            capacity=element_data["capacity"],
-            position=element_data["position"],
-        )
+        if element_data["type"] == "room":
+            floor_element = Room(
+                type=element_data["type"],
+                floor_id=element_data["floor_id"],
+                position=element_data["position"],
+                number=element_data["number"],
+                capacity=element_data["capacity"],
+                price_per_night=element_data["price_per_night"],
+            )
+        else:
+            floor_element = FloorElement(
+                type=element_data["type"],
+                floor_id=element_data["floor_id"],
+                position=element_data["position"],
+            )
         errors = floor_element.validate()
         if errors:
             raise ValidationError("Invalid Floor Element!", errors)
         self.__repository.add_element(floor_element)
+        self.__repository.add_element_to_floor(floor_element, floor_element.floor_id)
+
 
     def move_element(self, element_id, new_position):
         self.__repository.move_element(element_id, new_position)
@@ -72,5 +83,5 @@ class HotelService:
     def edit_element(self, element_id, new_capacity):
         self.__repository.edit_element(element_id, new_capacity)
 
-    def remove_element(self, element_id):
-        self.__repository.remove_element(element_id)
+    def remove_element(self, element):
+        self.__repository.remove_element(element)

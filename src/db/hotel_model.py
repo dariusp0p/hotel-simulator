@@ -111,7 +111,7 @@ def insert_element(connection, type, floor_id, x, y, number, capacity, price_per
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            INSERT INTO elements (type, floor_id, x, y, number, capacity, price_per_night) VALUES (?, ?, ?, ?, ?, ?, ?)            
+            INSERT INTO elements (element_type, floor_id, x, y, number, capacity, price_per_night) VALUES (?, ?, ?, ?, ?, ?, ?)            
         """, (type, floor_id, x, y, number, capacity, price_per_night))
         connection.commit()
         return cursor.lastrowid

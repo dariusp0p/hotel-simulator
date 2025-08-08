@@ -131,6 +131,16 @@ class HotelRepository:
         floor.name = new_name
         self.__floors_by_name[new_name] = floor
 
+    def add_element_to_floor(self, element, floor_id):
+        if floor_id not in self.__floors_by_id:
+            raise Exception("Floor not found")
+
+        floor = self.__floors_by_id[floor_id]
+        floor.add_element(element)
+
+        self.__floors_by_id[floor.db_id] = floor
+        self.__floors_by_name[floor.name] = floor
+
     def remove_floor(self, floor_id):
         if floor_id not in self.__floors_by_id:
             raise Exception("Floor not found")
@@ -143,29 +153,45 @@ class HotelRepository:
         del self.__floors_by_name[floor.name]
 
 
+
     # Floor elements
     def add_element(self, element):
-        if element.element_id in self.__floors_by_id[element.floor_id].elements:
-            raise Exception("Element already exists")
         try:
-            db.add_element(
-                self.__connection,
-                element.element_id,
-                element.element_type,
-                element.floor_id,
-                element.capacity,
-                element.position[0],
-                element.position[1],
-            )
-            new_db_row = db.get_element_by_element_id(
-                self.__connection, element.element_id
-            )
-            element.db_id = new_db_row[0]
-            floor = self.__floors_by_id[element.floor_id]
-            floor.load_element(element)
-            self.__global_graph.add_node(element.element_id, data=element)
+            if element.type == "room":
+                db_id = db.insert_element(
+                    self.__connection,
+                    element.type,
+                    element.floor_id,
+                    element.position[0],
+                    element.position[1],
+                    element.number,
+                    element.capacity,
+                    element.price_per_night,
+                )
+            else:
+                db_id = db.insert_element(
+                    self.__connection,
+                    element.type,
+                    element.floor_id,
+                    element.position[0],
+                    element.position[1],
+                    "",
+                    0,
+                    0,
+                )
+
+            element.db_id = db_id
+
+            self.__graph.add_node(element.db_id)
+
+            if element.type == "room":
+                self.__rooms_by_id[element.db_id] = element
+                if element.capacity not in self.__rooms_by_capacity:
+                    self.__rooms_by_capacity[element.capacity] = []
+                self.__rooms_by_capacity[element.capacity].append(element)
+
         except sqlite3.IntegrityError:
-            raise Exception(f"Element with id {element.element_id} already exists.")
+            raise Exception(f"Element with id {element.db_id} already exists.")
         except sqlite3.OperationalError:
             raise Exception("Database is unavailable or corrupted.")
 
@@ -187,12 +213,17 @@ class HotelRepository:
                 element.capacity = new_capacity
                 break
 
-    def remove_element(self, element_id):
-        db.delete_element(self.__connection, element_id)
-        for floor in self.__floors_by_id.values():
-            if element_id in floor.elements:
-                del floor.elements[element_id]
-                break
+    def remove_element(self, element):
+        if element.db_id not in self.__graph:
+            raise Exception("Element not found")
+
+        self.__graph.remove_node(element.db_id)
+        db.delete_element(self.__connection, element.db_id)
+
+        floor = self.__floors_by_id[element.floor_id]
+        floor.delete_element(element)
+
+
 
     def connect_elements(self, from_id, to_id):
         db.add_connection(self.__connection, from_id, to_id)
