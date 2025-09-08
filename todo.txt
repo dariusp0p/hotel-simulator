@@ -1,0 +1,21 @@
+# Hotel Configurator
+- Understand Qt code
+
+- Center the Grid
+- Cneter Window Title "Hotel Configurator"
+- move Undo Redo buttons to the right
+
+- Continuous Drag & Drop
+- Make move work
+
+- Make room look cleaner
+- Add edit room to sidebar
+- Make edit room work
+
+
+
+# Reservation Manager
+- Redo UI
+
+# Simulator
+
