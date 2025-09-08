@@ -7,7 +7,8 @@ from src.ui.hotel_configurator.floor_element_widget import FloorElementWidget
 
 
 class GridCanvas(QWidget):
-    elementDeleteRequested = pyqtSignal(object)  # Signal to request element deletion
+    elementDeleteRequested = pyqtSignal(object)
+    elementMoved = pyqtSignal(int, tuple)  # Signal to emit element_id and new position# Signal to request element deletion
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -18,6 +19,8 @@ class GridCanvas(QWidget):
         self.offset = QPoint(0, 0)
         self.last_mouse_pos = QPoint(0, 0)
         self.is_panning = False
+        self.is_dragging = False
+        self.drag_offset = QPoint(0, 0)
 
         self.hovered_element = None
         self.setMouseTracking(True)
@@ -82,13 +85,24 @@ class GridCanvas(QWidget):
 
         # Draw floor elements
         for element in self.elements:
-            element.draw(painter, self.cell_size)
+            # Pass drag_offset only for the selected element
+            if element == self.selected_element and self.is_dragging:
+                element.draw(painter, self.cell_size, self.drag_offset)
+            else:
+                element.draw(painter, self.cell_size)
 
+    # File: src/ui/hotel_configurator/grid_canvas_widget.py
     def set_floor_elements(self, elements_dict):
         """Set floor elements from a dictionary where keys are positions and values are elements"""
         self.elements = []
         for pos, element in elements_dict.items():
-            if element:  # Check if there is an element at this position
+            if element and pos:  # Ensure element and position are not None
+                if not isinstance(pos, tuple) or len(pos) != 2 or not all(isinstance(coord, int) for coord in pos):
+                    print(f"Invalid position: {pos}")
+                    continue
+                if element.position is None:  # Additional check for element position
+                    print(f"Element has no position: {element}")
+                    continue
                 element_widget = FloorElementWidget(
                     element_type=element.type,
                     position=pos,
@@ -107,73 +121,99 @@ class GridCanvas(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.is_panning = True
-            self.last_mouse_pos = event.position().toPoint()
-            self.setCursor(Qt.CursorShape.ClosedHandCursor)
-            self.setMouseTracking(True)
+            # Get the mouse position
+            pos = event.position().toPoint()
 
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            # Always reset panning state
-            self.is_panning = False
-            self.setCursor(Qt.CursorShape.ArrowCursor)
-
-            # Handle click logic
-            if (event.position().toPoint() - self.last_mouse_pos).manhattanLength() < 3:
-                pos = event.position().toPoint()
-
-                # Transform the point to grid coordinates
-                transform = QTransform()
-                transform.translate(self.offset.x(), self.offset.y())
-                transform.scale(self.scale_factor, self.scale_factor)
-
-                inverse_transform, invertible = transform.inverted()
-                if not invertible:
-                    return
-
-                grid_pos = inverse_transform.map(pos)
-
-                for element in self.elements:
-                    if element.is_delete_button_clicked(grid_pos, self.cell_size * self.scale_factor):
-                        print("Delete button clicked for element:", element.element_id)
+            # Check if the user clicked on an element
+            for element in self.elements:
+                if element.position == self.mapPositionToGrid(pos):
+                    # Check if the delete button was clicked
+                    if element.is_delete_button_clicked(pos, self.cell_size, self.offset, self.scale_factor):
                         self.elementDeleteRequested.emit(element)
-                        return  # Stop after handling the delete
-                    elif element.position == self.mapPositionToGrid(pos):
-                        self.select_element(element)
                         return
 
-                self.select_element(None)
+                    # Otherwise, select the element for dragging
+                    self.selected_element = element
+                    self.is_dragging = True
+                    self.last_mouse_pos = pos
+                    self.setCursor(Qt.CursorShape.ClosedHandCursor)
+                    return
+
+            # If no element is clicked, enable panning
+            self.is_panning = True
+            self.last_mouse_pos = pos
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseMoveEvent(self, event):
-        if self.is_panning:
+        pos = event.position().toPoint()
+        grid_pos = self.mapPositionToGrid(pos)
+
+        # Check if the mouse is over an element
+        hovered_element = None
+        for element in self.elements:
+            if element.position == grid_pos:
+                hovered_element = element
+                break
+
+        # Update hover state
+        if self.hovered_element != hovered_element:
+            if self.hovered_element:
+                self.hovered_element.hovered = False
+            self.hovered_element = hovered_element
+            if self.hovered_element:
+                self.hovered_element.hovered = True
+            self.update()
+
+        # Handle dragging
+        if self.is_dragging and self.selected_element:
+            # Validate position
+            if not self.selected_element.position or not isinstance(self.selected_element.position, tuple) or len(
+                    self.selected_element.position) != 2:
+                self.is_dragging = False
+                self.selected_element = None
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+                return
+
+            # Calculate the delta movement
+            delta = event.position().toPoint() - self.last_mouse_pos
+            self.last_mouse_pos = event.position().toPoint()
+
+            # Update drag offset for smooth visual movement
+            self.drag_offset += delta
+
+            # Update visually without changing the grid position yet
+            self.update()
+
+        # Handle panning
+        elif self.is_panning:
             delta = event.position().toPoint() - self.last_mouse_pos
             self.offset += delta
             self.last_mouse_pos = event.position().toPoint()
             self.update()
-        else:
-            # Get the mouse position in grid coordinates
-            pos = event.position().toPoint()
-            transformed_pos = self.mapPositionToGrid(pos)
 
-            # Reset hover state for all elements
-            for element in self.elements:
-                element.hovered = False
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.is_dragging and self.selected_element:
+                # Snap the element to the nearest grid cell
+                grid_pos = self.mapPositionToGrid(event.position().toPoint())
+                if grid_pos:
+                    self.selected_element.position = grid_pos
 
-            self.hovered_element = None
+                    # Update the backend with the new position
+                    self.elementMoved.emit(self.selected_element.element_id, grid_pos)
 
-            # Check if the mouse is over a valid grid position
-            if transformed_pos:
-                grid_x, grid_y = transformed_pos
+                # Reset drag offset
+                self.drag_offset = QPoint(0, 0)
+                self.is_dragging = False
+                self.selected_element = None
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+                self.update()
+            elif self.is_panning:
+                self.is_panning = False
+                self.setCursor(Qt.CursorShape.ArrowCursor)
 
-                # Find the element at the grid position
-                for element in self.elements:
-                    if element.position == (grid_x, grid_y):
-                        element.hovered = True
-                        self.hovered_element = element
-                        break  # Stop after finding the first hovered element
 
-            # Debugging: Log hover state for all elements
-            self.update()  # Redraw the grid  # Redraw the grid  # Redraw to show hover effects  # Redraw to show hover effects  # Redraw to show hover effects
+
 
     def leaveEvent(self, event):
         # Reset hover state when mouse leaves the widget

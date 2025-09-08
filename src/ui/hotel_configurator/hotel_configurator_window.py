@@ -76,6 +76,7 @@ class HotelConfiguratorWindow(QMainWindow):
         self.grid_canvas = GridCanvas()
 
         self.grid_canvas.elementDeleteRequested.connect(self.confirm_delete_element)
+        self.grid_canvas.elementMoved.connect(self.controller.hotel_service.move_element)
 
         # Create top bar
         self.top_bar = self.create_top_bar()
@@ -372,9 +373,16 @@ class HotelConfiguratorWindow(QMainWindow):
             self.hot_bar.height()
         )
 
+
+
+
     def handle_back(self):
         if self.on_back:
             self.on_back()
+
+
+
+
 
     def populate_floor_list(self):
         self.floor_list.clear()

@@ -13,9 +13,18 @@ class FloorElementWidget:
         self.selected = False
         self.hovered = False
 
-    def draw(self, painter, cell_size):
-        x = self.position[0] * cell_size
-        y = self.position[1] * cell_size
+    def draw(self, painter, cell_size, drag_offset=None):
+        if not self.position or not isinstance(self.position, tuple) or len(self.position) != 2:
+            print(f"Invalid position for element: {self}")
+            return
+
+        # Apply drag offset for the selected element
+        if self.selected and drag_offset:
+            x = int(self.position[0] * cell_size) + drag_offset.x()
+            y = int(self.position[1] * cell_size) + drag_offset.y()
+        else:
+            x = int(self.position[0] * cell_size)
+            y = int(self.position[1] * cell_size)
 
         if self.element_type == "room":
             background_color = QColor(173, 216, 230)  # Light blue
@@ -29,7 +38,6 @@ class FloorElementWidget:
         else:
             background_color = QColor(255, 192, 203)  # Light pink (unknown element)
             text_color = QColor(100, 0, 0)
-
 
         if self.selected:
             border_width = 3
@@ -74,8 +82,8 @@ class FloorElementWidget:
         # Draw X button when hovered
         if self.hovered:
             x_btn_size = cell_size / 4
-            x_btn_x = self.position[0] * cell_size + cell_size - x_btn_size - 2
-            x_btn_y = self.position[1] * cell_size + 2
+            x_btn_x = int(self.position[0] * cell_size + cell_size - x_btn_size - 2)
+            x_btn_y = int(self.position[1] * cell_size + 2)
 
             # X symbol
             painter.setPen(QPen(QColor(0, 0, 0), 2))
@@ -89,23 +97,27 @@ class FloorElementWidget:
                 QPointF(x_btn_x + margin, x_btn_y + x_btn_size - margin)
             )
 
-    def is_delete_button_clicked(self, point, cell_size):
+    def is_delete_button_clicked(self, point, cell_size, offset, scale_factor):
         if not self.hovered:
             print("Element is not hovered.")
             return False
 
+        # Transform the point to the element's local coordinate system
+        local_x = (point.x() - offset.x()) / scale_factor - self.position[0] * cell_size
+        local_y = (point.y() - offset.y()) / scale_factor - self.position[1] * cell_size
+
         # Calculate delete button area
         x_btn_size = cell_size / 4
-        x_btn_x = self.position[0] * cell_size + cell_size - x_btn_size - 2
-        x_btn_y = self.position[1] * cell_size + 2
+        x_btn_x = cell_size - x_btn_size - 2
+        x_btn_y = 2
 
-        # Debugging: Print calculated button area and point
+        # Debugging: Print calculated button area and transformed point
         print(f"Delete button area: ({x_btn_x}, {x_btn_y}, {x_btn_x + x_btn_size}, {x_btn_y + x_btn_size})")
-        print(f"Mouse click point: ({point.x()}, {point.y()})")
+        print(f"Transformed click point: ({local_x}, {local_y})")
 
-        # Check if the point is within the delete button area
-        clicked = (x_btn_x <= point.x() <= x_btn_x + x_btn_size and
-                   x_btn_y <= point.y() <= x_btn_y + x_btn_size)
+        # Check if the transformed point is within the delete button area
+        clicked = (x_btn_x <= local_x <= x_btn_x + x_btn_size and
+                   x_btn_y <= local_y <= x_btn_y + x_btn_size)
 
         print(f"Delete button clicked: {clicked}")
         return clicked
