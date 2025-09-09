@@ -5,18 +5,30 @@ class ValidationError(ApplicationException):
     pass
 
 
+class DatabaseError(ApplicationException):
+    pass
+class DatabaseUnavailableError(DatabaseError):
+    pass
 
 class RepositoryError(ApplicationException):
     pass
 
 class ReservationAlreadyExistsError(RepositoryError):
     pass
-
 class ReservationNotFoundError(RepositoryError):
     pass
 
-class DatabaseUnavailableError(RepositoryError):
+class FloorAlreadyExistsError(RepositoryError):
     pass
+class FloorNotFoundError(RepositoryError):
+    pass
+
+class ElementAlreadyExistsError(RepositoryError):
+    pass
+class ElementNotFoundError(RepositoryError):
+    pass
+
+
 
 
 

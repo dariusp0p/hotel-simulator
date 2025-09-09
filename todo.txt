@@ -1,6 +1,4 @@
 # Hotel Configurator
-- Understand Qt code
-
 - Center the Grid - done
 - move Undo Redo buttons to the right - done
 
@@ -10,6 +8,12 @@
 - Make room look cleaner - done
 - Add edit room to sidebar - done
 - Make edit room work - done
+
+- add connections
+- prepare for undo redo
+
+- Understand Qt code
+- Review Backend code
 
 
 # Reservation Manager

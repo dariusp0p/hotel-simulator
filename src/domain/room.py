@@ -11,7 +11,6 @@ class Room(FloorElement):
         self.__price_per_night = price_per_night
 
 
-
     @property
     def number(self):
         return self.__number

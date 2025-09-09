@@ -1,3 +1,6 @@
+from src.utilities.exceptions import ValidationError, ElementNotFoundError
+
+
 class Floor:
     def __init__(self, db_id=None, name=None, level=None):
         self.__db_id = db_id
@@ -5,7 +8,7 @@ class Floor:
         self.__level = level
 
         self.__elements = {}
-        self._grid_cache = None
+        self.__grid_cache = None
 
 
     @property
@@ -31,7 +34,6 @@ class Floor:
 
     @property
     def elements(self):
-        # return list(self.__elements.values())
         return self.__elements
 
     def build_grid(self):
@@ -43,35 +45,52 @@ class Floor:
 
     @property
     def grid(self):
-        if self._grid_cache is None:
-            self._grid_cache = self.build_grid()
-        return self._grid_cache
+        if self.__grid_cache is None:
+            self.__grid_cache = self.build_grid()
+        return self.__grid_cache
 
+
+    # CRUD Operations for Floor Elements
 
     def add_element(self, element):
+        """Adds a FloorElement (Room or Staircase) to the floor. Theta(1) complexity."""
         self.__elements[element.db_id] = element
-        if self._grid_cache is not None and element.position:
-            self._grid_cache[element.position] = element
+        if self.__grid_cache is not None and element.position:
+            self.__grid_cache[element.position] = element
 
     def move_element(self, element_id, new_position):
-        if element_id in self.__elements:
-            element = self.__elements[element_id]
-            old_position = element.position
-            element.position = new_position
+        """Moves an element to a new position. Theta(1) complexity."""
+        if element_id not in self.__elements:
+            raise ElementNotFoundError("Element not found!")
 
-            if self._grid_cache is not None:
-                if old_position in self._grid_cache:
-                    del self._grid_cache[old_position]
-                self._grid_cache[new_position] = element
+        element = self.__elements[element_id]
+        old_position = element.position
+        element.position = new_position
 
-    def edit_element(self, element, new_properties):
-        pass
+        if self.__grid_cache is not None:
+            if old_position in self.__grid_cache:
+                del self.__grid_cache[old_position]
+            self.__grid_cache[new_position] = element
 
-    def delete_element(self, element):
-        if element.db_id in self.__elements:
-            if self._grid_cache is not None and element.position in self._grid_cache:
-                del self._grid_cache[element.position]
-            del self.__elements[element.db_id]
+    def edit_room(self, element_id, new_number, new_capacity, new_price_per_night):
+        """Edits the details of a room. Theta(1) complexity."""
+        if element_id not in self.__elements:
+            raise ElementNotFoundError("Room not found!")
+
+        element = self.__elements[element_id]
+        element.number = new_number
+        element.capacity = new_capacity
+        element.price_per_night = new_price_per_night
+
+    def delete_element(self, element_id):
+        """Deletes an element from the floor. Theta(1) complexity."""
+        if element_id not in self.__elements:
+            raise ElementNotFoundError("Element not found!")
+
+        element = self.__elements[element_id]
+        if self.__grid_cache is not None and element.position in self.__grid_cache:
+            del self.__grid_cache[element.position]
+        del self.__elements[element_id]
 
 
     def get_element_neighbors(self, element):

@@ -129,9 +129,13 @@ class Controller:
 
     def remove_floor(self, floor_id):
         try:
+            elements = self.__hotel_service.get_elements_by_floor_id(floor_id)
+            for element in elements:
+                self.__hotel_service.remove_element(element)
             self.__hotel_service.remove_floor(floor_id)
         except Exception as e:
             raise e
+
 
 
     def add_element(self, element_data):

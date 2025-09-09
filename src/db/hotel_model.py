@@ -1,6 +1,7 @@
 import sqlite3
 
 
+
 def create_hotel_model(connection):
     cursor = connection.cursor()
     cursor.executescript("""
