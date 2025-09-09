@@ -4,7 +4,7 @@
 - Center the Grid - done
 - move Undo Redo buttons to the right - done
 
-- Continuous Drag & Drop
+- Continuous Drag & Drop - done
 - Make move work - done
 
 - Make room look cleaner

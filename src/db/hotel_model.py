@@ -132,12 +132,12 @@ def update_element_position(connection, element_id, new_x, new_y):
     except sqlite3.OperationalError as e:
         raise e
 
-def update_element_capacity(connection, element_id, new_capacity):
+def update_element(connection, element_id, new_number, new_capacity, new_price_per_night):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            UPDATE elements SET capacity = ? WHERE id = ?
-        """, (new_capacity, element_id))
+            UPDATE elements SET number = ?, capacity = ?, price_per_night = ? WHERE id = ?
+        """, (new_number, new_capacity, new_price_per_night, element_id))
         connection.commit()
     except sqlite3.IntegrityError as e:
         raise e

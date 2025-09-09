@@ -4,12 +4,13 @@ from PyQt6.QtGui import QColor, QPen
 
 
 class FloorElementWidget:
-    def __init__(self, element_type, position, element_id=None, number=None, capacity=None):
+    def __init__(self, element_type, position, element_id=None, number=None, capacity=None, price_per_night=None):
         self.element_type = element_type
         self.position = position
         self.element_id = element_id
         self.number = number
         self.capacity = capacity
+        self.price_per_night = price_per_night
 
         self.selected = False
         self.hovered = False
@@ -42,7 +43,7 @@ class FloorElementWidget:
 
         if self.selected:
             border_width = 3
-            border_color = QColor(255, 140, 0)  # Orange
+            border_color = QColor(255, 0, 0)  # Red
         else:
             border_width = 1
             border_color = QColor(50, 50, 50)  # Dark gray

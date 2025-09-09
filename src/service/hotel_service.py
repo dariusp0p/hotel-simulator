@@ -81,8 +81,8 @@ class HotelService:
     def move_element(self, element_id, new_position):
         self.__repository.move_element(element_id, new_position)
 
-    def edit_element(self, element_id, new_capacity):
-        self.__repository.edit_element(element_id, new_capacity)
+    def edit_room(self, element_id, new_number, new_capacity, new_price_per_night):
+        self.__repository.edit_room(element_id, new_number, new_capacity, new_price_per_night)
 
     def remove_element(self, element):
         self.__repository.remove_element(element)

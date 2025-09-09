@@ -9,6 +9,7 @@ from src.ui.hotel_configurator.components.floor_element_widget import FloorEleme
 class GridCanvas(QWidget):
     elementDeleteRequested = pyqtSignal(object)
     elementMoved = pyqtSignal(int, tuple)
+    roomSelected = pyqtSignal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,43 +33,44 @@ class GridCanvas(QWidget):
         self.elements = []
         self.selected_element = None
 
+
     def set_floor_elements(self, elements_dict):
-        """Set floor elements from a dictionary where keys are positions and values are elements"""
         self.elements = []
         for pos, element in elements_dict.items():
-            if element and pos:  # Ensure element and position are not None
+            if element and pos:
                 if not isinstance(pos, tuple) or len(pos) != 2 or not all(isinstance(coord, int) for coord in pos):
-                    print(f"Invalid position: {pos}")
                     continue
-                if element.position is None:  # Additional check for element position
-                    print(f"Element has no position: {element}")
+                if element.position is None:
                     continue
                 element_widget = FloorElementWidget(
                     element_type=element.type,
                     position=pos,
                     element_id=element.db_id,
                     number=getattr(element, 'number', None),
-                    capacity=getattr(element, 'capacity', None)
+                    capacity=getattr(element, 'capacity', None),
+                    price_per_night=getattr(element, 'price_per_night', None)
                 )
                 self.elements.append(element_widget)
         self.update()
 
-    def clear_elements(self):
-        """Clear all elements from the grid"""
+    def clear_floor_elements(self):
         self.elements = []
         self.selected_element = None
         self.update()
 
     def select_element(self, element):
-        # if self.selected_element:
-        #     self.selected_element.selected = False
         for el in self.elements:
             el.selected = False
+
         self.selected_element = element
+
         if element:
             element.selected = True
+            if element.element_type == "room":
+                self.roomSelected.emit(element)
+            else:
+                self.roomSelected.emit(None)
         self.update()
-
 
 
     def map_position_to_grid(self, pos):
@@ -138,39 +140,43 @@ class GridCanvas(QWidget):
         for element in self.elements:
             if element != self.selected_element:
                 element.draw(painter, self.cell_size)
-        if self.is_dragging:
-            mouse_pos = self.last_mouse_pos
-            transform = QTransform()
-            transform.translate(self.offset.x(), self.offset.y())
-            transform.scale(self.scale_factor, self.scale_factor)
-            inverse_transform, _ = transform.inverted()
-            scene_pos = inverse_transform.map(mouse_pos)
-            self.selected_element.draw(painter, self.cell_size, scene_pos)
+        if self.selected_element:
+            if self.is_dragging:
+                mouse_pos = self.last_mouse_pos
+                transform = QTransform()
+                transform.translate(self.offset.x(), self.offset.y())
+                transform.scale(self.scale_factor, self.scale_factor)
+                inverse_transform, _ = transform.inverted()
+                scene_pos = inverse_transform.map(mouse_pos)
+                self.selected_element.draw(painter, self.cell_size, scene_pos)
+            else:
+                self.selected_element.draw(painter, self.cell_size)
 
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             pos = event.position().toPoint()
+            grid_pos = self.map_position_to_grid(pos)
 
-            # Check if the user clicked on an element
+            clicked_on_element = False
             for element in self.elements:
-                if element.position == self.map_position_to_grid(pos):
-                    # Check if the delete button was clicked
+                if element.position == grid_pos:
                     if element.is_delete_button_clicked(pos, self.cell_size, self.offset, self.scale_factor):
                         self.elementDeleteRequested.emit(element)
                         return
 
-                    # Otherwise, select the element for dragging
-                    self.selected_element = element
+                    self.select_element(element)
                     self.is_dragging = True
                     self.last_mouse_pos = pos
                     self.setCursor(Qt.CursorShape.ClosedHandCursor)
-                    return
+                    clicked_on_element = True
+                    break
 
-            # If no element is clicked, enable panning
-            self.is_panning = True
-            self.last_mouse_pos = pos
-            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+            if not clicked_on_element:
+                self.select_element(None)
+                self.is_panning = True
+                self.last_mouse_pos = pos
+                self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseMoveEvent(self, event):
         pos = event.position().toPoint()
@@ -227,29 +233,21 @@ class GridCanvas(QWidget):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             if self.is_dragging and self.selected_element:
-                # Snap the element to the nearest grid cell
                 grid_pos = self.map_position_to_grid(event.position().toPoint())
-
                 position_is_free = True
                 if grid_pos:
                     for element in self.elements:
-                        # Skip checking against the element being dragged
                         if element == self.selected_element:
                             continue
-
-                        # Check if position is already occupied
                         if element.position == grid_pos:
                             position_is_free = False
                             break
-
                 if grid_pos and position_is_free:
                     self.selected_element.position = grid_pos
                     self.elementMoved.emit(self.selected_element.element_id, grid_pos)
 
-                # Reset drag offset
                 self.drag_offset = QPoint(0, 0)
                 self.is_dragging = False
-                self.selected_element = None
                 self.setCursor(Qt.CursorShape.ArrowCursor)
                 self.update()
             elif self.is_panning:
@@ -295,4 +293,3 @@ class GridCanvas(QWidget):
             (self.height() - self.grid_size * self.cell_size) // 2
         )
         self.update()
-

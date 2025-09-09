@@ -28,6 +28,7 @@ class HotelConfiguratorWindow(QMainWindow):
         self.grid_canvas = GridCanvas()
         self.grid_canvas.elementDeleteRequested.connect(self.confirm_delete_element)
         self.grid_canvas.elementMoved.connect(self.on_element_moved)
+        self.grid_canvas.roomSelected.connect(self.on_room_selected)
 
         self.top_bar = TopBar([
             {"label": "← Back", "callback": self.handle_back},
@@ -104,6 +105,7 @@ class HotelConfiguratorWindow(QMainWindow):
 
     # Floor CRUD
     def on_floor_selected(self, item):
+        self.grid_canvas.select_element(None)
         self.selected_floor = item.data(Qt.ItemDataRole.UserRole)
         self.side_bar.floor_name_edit.setText(self.selected_floor.name)
         self.side_bar.floor_name_edit.setPlaceholderText(self.selected_floor.name)
@@ -112,7 +114,7 @@ class HotelConfiguratorWindow(QMainWindow):
             self.grid_canvas.set_floor_elements(floor_grid)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load floor elements: {str(e)}")
-            self.grid_canvas.clear_elements()
+            self.grid_canvas.clear_floor_elements()
 
     def on_add_floor(self):
         floor_name, ok = QInputDialog.getText(
@@ -127,6 +129,7 @@ class HotelConfiguratorWindow(QMainWindow):
             return
 
         try:
+            self.grid_canvas.select_element(None)
             self.controller.add_floor(floor_name, self.side_bar.floor_list.count())
             self.side_bar.populate_floor_list()
             QMessageBox.information(self, "Success", "Floor added successfully!")
@@ -173,7 +176,6 @@ class HotelConfiguratorWindow(QMainWindow):
 
     def on_remove_floor(self):
         selected_floor = self.selected_floor
-        print(selected_floor.db_id, selected_floor.name)
         try:
             self.controller.remove_floor(selected_floor.db_id)
             self.side_bar.populate_floor_list()
@@ -209,6 +211,10 @@ class HotelConfiguratorWindow(QMainWindow):
         return random.choice(free_positions)
 
 
+
+    def on_room_selected(self, room):
+        self._selected_room = room
+        self.side_bar.display_room_details(room)
 
     def add_room(self):
         if not self.selected_floor:
@@ -276,8 +282,44 @@ class HotelConfiguratorWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Warning", "No free space available on this floor")
 
-    def update_room(self, element_widget, number, capacity, price_per_night):
-        pass
+    def update_room(self):
+        if not hasattr(self, '_selected_room') or not self._selected_room:
+            QMessageBox.warning(self, "Warning", "Please select a room first")
+            return
+
+        try:
+            number = self.side_bar.room_number_edit.text()
+            capacity_text = self.side_bar.room_capacity_edit.text()
+            price_text = self.side_bar.room_price_edit.text()
+
+            if not number:
+                QMessageBox.warning(self, "Warning", "Room number cannot be empty")
+                return
+            try:
+                capacity = int(capacity_text)
+                if capacity <= 0:
+                    raise ValueError("Capacity must be positive")
+            except ValueError:
+                QMessageBox.warning(self, "Warning", "Capacity must be a positive number")
+                return
+            try:
+                price = float(price_text)
+                if price < 0:
+                    raise ValueError("Price cannot be negative")
+            except ValueError:
+                QMessageBox.warning(self, "Warning", "Price must be a valid number")
+                return
+
+            self.controller.hotel_service.edit_room(self._selected_room.element_id, number, capacity, price)
+
+            floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+            self.grid_canvas.set_floor_elements(floor_grid)
+            self.grid_canvas.select_element(None)
+            self.grid_canvas.update()
+
+            QMessageBox.information(self, "Success", "Room updated successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to update room: {str(e)}")
 
     def on_element_moved(self, element_id, new_position):
         self.controller.hotel_service.move_element(element_id, new_position)
@@ -318,6 +360,7 @@ class HotelConfiguratorWindow(QMainWindow):
 
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
                 self.grid_canvas.set_floor_elements(floor_grid)
+                self.grid_canvas.select_element(None)
                 self.grid_canvas.update()
                 QMessageBox.information(self, "Success", f"{element_type} successfully deleted!")
             except Exception as e:

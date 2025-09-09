@@ -208,3 +208,13 @@ class SideBar(QWidget):
             item = QListWidgetItem(floor.name)
             item.setData(Qt.ItemDataRole.UserRole, floor)
             self.floor_list.addItem(item)
+
+    def display_room_details(self, room):
+        if room:
+            self.room_number_edit.setText(str(room.number))
+            self.room_capacity_edit.setText(str(room.capacity))
+            self.room_price_edit.setText(str(room.price_per_night))
+        else:
+            self.room_number_edit.clear()
+            self.room_capacity_edit.clear()
+            self.room_price_edit.clear()

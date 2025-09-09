@@ -196,9 +196,7 @@ class HotelRepository:
             raise Exception("Database is unavailable or corrupted.")
 
     def move_element(self, element_id, new_position):
-        db.update_element_position(
-            self.__connection, element_id, new_position[0], new_position[1]
-        )
+        db.update_element_position(self.__connection, element_id, new_x=new_position[0], new_y=new_position[1])
         for floor in self.__floors_by_id.values():
             if element_id in floor.elements:
                 floor.move_element(element_id, new_position)
@@ -214,12 +212,14 @@ class HotelRepository:
                             break
                 break
 
-    def edit_element(self, element_id, new_capacity):
-        db.update_element_capacity(self.__connection, element_id, new_capacity)
+    def edit_room(self, element_id, new_number, new_capacity, new_price_per_night):
+        db.update_element(self.__connection, element_id, new_number, new_capacity, new_price_per_night)
         for floor in self.__floors_by_id.values():
             if element_id in floor.elements:
                 element = floor.elements[element_id]
                 element.capacity = new_capacity
+                element.number = new_number
+                element.price_per_night = new_price_per_night
                 break
 
     def remove_element(self, element):
