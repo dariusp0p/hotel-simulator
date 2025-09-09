@@ -7,10 +7,9 @@
 - Continuous Drag & Drop - done
 - Make move work - done
 
-- Make room look cleaner
-- Add edit room to sidebar
-- Make edit room work
-
+- Make room look cleaner - done
+- Add edit room to sidebar - done
+- Make edit room work - done
 
 
 # Reservation Manager

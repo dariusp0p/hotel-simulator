@@ -1,6 +1,5 @@
 from PyQt6.QtCore import Qt, QRectF, QPointF
-from PyQt6.QtGui import QColor, QPen
-
+from PyQt6.QtGui import QColor, QPen, QFont
 
 
 class FloorElementWidget:
@@ -32,8 +31,8 @@ class FloorElementWidget:
             background_color = QColor(173, 216, 230)  # Light blue
             text_color = QColor(0, 0, 100)
         elif self.element_type == "staircase":
-            background_color = QColor(152, 251, 152)  # Light green
-            text_color = QColor(0, 100, 0)
+            background_color = QColor(255, 249, 196)  # Light yellow
+            text_color = QColor(120, 90, 0)
         elif self.element_type == "hallway":
             background_color = QColor(211, 211, 211)  # Light gray
             text_color = QColor(50, 50, 50)
@@ -56,31 +55,34 @@ class FloorElementWidget:
 
         # Draw text info
         painter.setPen(text_color)
-        font = painter.font()
+        font = QFont("Arial", 10)
         font.setBold(True)
         painter.setFont(font)
 
         # Draw element type
-        painter.drawText(
-            QRectF(x, y, cell_size, cell_size / 2),
-            Qt.AlignmentFlag.AlignCenter,
-            self.element_type.capitalize()
-        )
-
-        # Draw room number or capacity if available
-        if self.number:
+        if self.element_type == "room":
             painter.drawText(
-                QRectF(x, y + cell_size / 2, cell_size, cell_size / 4),
+                QRectF(x, y, cell_size, cell_size / 2),
                 Qt.AlignmentFlag.AlignCenter,
-                f"#{self.number}"
+                self.element_type.capitalize() + f" {self.number}"
             )
-
-        if self.capacity and self.element_type == "room":
             painter.drawText(
-                QRectF(x, y + 3 * cell_size / 4, cell_size, cell_size / 4),
+                QRectF(x, y + 2 * cell_size / 4, cell_size, cell_size / 4),
                 Qt.AlignmentFlag.AlignCenter,
                 f"Cap: {self.capacity}"
             )
+            painter.drawText(
+                QRectF(x, y + 3 * cell_size / 4, cell_size, cell_size / 4),
+                Qt.AlignmentFlag.AlignCenter,
+                f"Price: {self.price_per_night}"
+            )
+        else:
+            painter.drawText(
+                QRectF(x, y, cell_size, cell_size),
+                Qt.AlignmentFlag.AlignCenter,
+                self.element_type.capitalize()
+            )
+
 
         # Draw X button when hovered
         if self.hovered:
