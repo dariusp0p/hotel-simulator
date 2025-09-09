@@ -179,6 +179,7 @@ class HotelConfiguratorWindow(QMainWindow):
         try:
             self.controller.remove_floor(selected_floor.db_id)
             self.side_bar.populate_floor_list()
+            self.grid_canvas.clear_floor_elements()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to remove floor: {str(e)}")
             return

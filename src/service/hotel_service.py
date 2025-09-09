@@ -48,8 +48,9 @@ class HotelService:
         self.__repository.move_floor(floor_id, new_level)
 
     def remove_floor(self, floor_id):
-        floor_elements = self.__repository.get_elements_by_floor_id(floor_id)
-        for element in floor_elements:
+        elements_dict = self.__repository.get_elements_by_floor_id(floor_id)
+        elements = list(elements_dict.values())
+        for element in elements:
             self.__repository.remove_element(element)
         self.__repository.remove_floor(floor_id)
 
