@@ -14,7 +14,7 @@ class HotelRepository:
 
         self.__graph = nx.Graph()
 
-        self.__floors_by_id = {} # not sure if needed yet
+        self.__floors_by_id = {}
         self.__floors_by_name = {}
 
         self.__rooms_by_id = {}
@@ -201,8 +201,17 @@ class HotelRepository:
         )
         for floor in self.__floors_by_id.values():
             if element_id in floor.elements:
+                floor.move_element(element_id, new_position)
+
                 element = floor.elements[element_id]
-                element.position = new_position
+                if element.db_id in self.__rooms_by_id:
+                    self.__rooms_by_id[element.db_id].position = new_position
+
+                if hasattr(element, 'capacity') and element.capacity in self.__rooms_by_capacity:
+                    for room in self.__rooms_by_capacity[element.capacity]:
+                        if room.db_id == element_id:
+                            room.position = new_position
+                            break
                 break
 
     def edit_element(self, element_id, new_capacity):

@@ -1,9 +1,9 @@
-from random import randint
 from src.domain.floor import Floor
 from src.domain.room import Room
 from src.domain.floor_element import FloorElement
 from src.repository.hotel_repository import HotelRepository
 from src.utilities.exceptions import ValidationError
+
 
 
 class HotelService:
@@ -50,8 +50,9 @@ class HotelService:
     def remove_floor(self, floor_id):
         floor_elements = self.__repository.get_elements_by_floor_id(floor_id)
         for element in floor_elements:
-            self.__repository.remove_element(element.db_id)
+            self.__repository.remove_element(element)
         self.__repository.remove_floor(floor_id)
+
 
     # Elements
     def add_element(self, element_data):

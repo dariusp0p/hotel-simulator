@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget
+
 from src.ui.main_menu import MainMenuPage
 from src.ui.reservation_manager.admin_window import ReservationManagerAdminWindow
 from src.ui.reservation_manager.user_window import ReservationManagerUserWindow
 from src.ui.hotel_configurator.hotel_configurator_window import HotelConfiguratorWindow
+
 
 
 class MainWindow(QMainWindow):

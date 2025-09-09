@@ -4,8 +4,8 @@ class Floor:
         self.__name = name
         self.__level = level
 
-        self.__grid = {}
         self.__elements = {}
+        self._grid_cache = None
 
 
     @property
@@ -31,38 +31,57 @@ class Floor:
 
     @property
     def elements(self):
-        return list(self.__elements.values())
+        # return list(self.__elements.values())
+        return self.__elements
+
+    def build_grid(self):
+        grid_dict = {}
+        for element in self.__elements.values():
+            if element.position:
+                grid_dict[element.position] = element
+        return grid_dict
 
     @property
     def grid(self):
-        return self.__grid
-
+        if self._grid_cache is None:
+            self._grid_cache = self.build_grid()
+        return self._grid_cache
 
 
     def add_element(self, element):
         self.__elements[element.db_id] = element
-        self.__grid[element.position] = element
+        if self._grid_cache is not None and element.position:
+            self._grid_cache[element.position] = element
 
-    def move_element(self, element, new_position):
-        pass
+    def move_element(self, element_id, new_position):
+        if element_id in self.__elements:
+            element = self.__elements[element_id]
+            old_position = element.position
+            element.position = new_position
+
+            if self._grid_cache is not None:
+                if old_position in self._grid_cache:
+                    del self._grid_cache[old_position]
+                self._grid_cache[new_position] = element
 
     def edit_element(self, element, new_properties):
         pass
 
     def delete_element(self, element):
         if element.db_id in self.__elements:
+            if self._grid_cache is not None and element.position in self._grid_cache:
+                del self._grid_cache[element.position]
             del self.__elements[element.db_id]
-        if element.position in self.__grid:
-            del self.__grid[element.position]
 
 
     def get_element_neighbors(self, element):
         x, y = element.position
         neighbor_positions = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
         neighbors = {}
+        grid = self.grid
         for pos in neighbor_positions:
-            if pos in self.__grid:
-                neighbors[pos] = self.__grid[pos]
+            if pos in grid:
+                neighbors[pos] = grid[pos]
         return neighbors
 
     def are_neighbors(self, element_1, element_2):
