@@ -1,4 +1,2 @@
-
-# Ignorăm fișiere generate automat
 __pycache__/
 data/db/*.db

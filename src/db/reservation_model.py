@@ -19,7 +19,7 @@ def create_reservation_model(connection):
 
 
 
-def get_all_reservations(connection):
+def select_all_reservations(connection):
     try:
         cursor = connection.cursor()
         cursor.execute("""
@@ -29,7 +29,7 @@ def get_all_reservations(connection):
     except sqlite3.OperationalError as e:
         raise e
 
-def get_reservation_by_reservation_id(connection, reservation_id):
+def select_reservation_by_reservation_id(connection, reservation_id):
     try:
         cursor = connection.cursor()
         cursor.execute("""
@@ -40,7 +40,7 @@ def get_reservation_by_reservation_id(connection, reservation_id):
         raise e
 
 
-def add_reservation(connection, reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date):
+def insert_reservation(connection, reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date):
     try:
         cursor = connection.cursor()
         cursor.execute("""

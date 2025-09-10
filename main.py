@@ -16,7 +16,7 @@ def main():
     app = QApplication(sys.argv)
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    data_dir = os.path.join(base_dir, "..", "data", "db")
+    data_dir = os.path.join(base_dir, "data", "db")
 
     db_manager = DatabaseManager(
         reservations_db=os.path.join(data_dir, "reservations.db"),

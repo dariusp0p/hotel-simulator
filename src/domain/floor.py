@@ -1,12 +1,15 @@
+from src.utilities.exceptions import ValidationError, ElementNotFoundError
+
+
 class Floor:
-    def __init__(self, db_id=None, name=None):
+    def __init__(self, db_id=None, name=None, level=None):
         self.__db_id = db_id
         self.__name = name
-        self.__grid_size = (10, 10)
+        self.__level = level
 
         self.__elements = {}
-        self.__grid = {}
-        self.__connections = {}
+        self.__grid_cache = None
+
 
     @property
     def db_id(self):
@@ -23,104 +26,80 @@ class Floor:
         self.__name = name
 
     @property
+    def level(self):
+        return self.__level
+    @level.setter
+    def level(self, level):
+        self.__level = level
+
+    @property
     def elements(self):
         return self.__elements
 
+    def build_grid(self):
+        grid_dict = {}
+        for element in self.__elements.values():
+            if element.position:
+                grid_dict[element.position] = element
+        return grid_dict
+
     @property
     def grid(self):
-        return self.__grid
-
-    @property
-    def connections(self):
-        return self.__connections
+        if self.__grid_cache is None:
+            self.__grid_cache = self.build_grid()
+        return self.__grid_cache
 
 
+    # CRUD Operations for Floor Elements
+
+    def add_element(self, element):
+        """Adds a FloorElement (Room or Staircase) to the floor. Theta(1) complexity."""
+        self.__elements[element.db_id] = element
+        if self.__grid_cache is not None and element.position:
+            self.__grid_cache[element.position] = element
+
+    def move_element(self, element_id, new_position):
+        """Moves an element to a new position. Theta(1) complexity."""
+        if element_id not in self.__elements:
+            raise ElementNotFoundError("Element not found!")
+
+        element = self.__elements[element_id]
+        old_position = element.position
+        element.position = new_position
+
+        if self.__grid_cache is not None:
+            if old_position in self.__grid_cache:
+                del self.__grid_cache[old_position]
+            self.__grid_cache[new_position] = element
+
+    def edit_room(self, element_id, new_number, new_capacity, new_price_per_night):
+        """Edits the details of a room. Theta(1) complexity."""
+        if element_id not in self.__elements:
+            raise ElementNotFoundError("Room not found!")
+
+        element = self.__elements[element_id]
+        element.number = new_number
+        element.capacity = new_capacity
+        element.price_per_night = new_price_per_night
+
+    def delete_element(self, element_id):
+        """Deletes an element from the floor. Theta(1) complexity."""
+        if element_id not in self.__elements:
+            raise ElementNotFoundError("Element not found!")
+
+        element = self.__elements[element_id]
+        if self.__grid_cache is not None and element.position in self.__grid_cache:
+            del self.__grid_cache[element.position]
+        del self.__elements[element_id]
 
 
-    def load_element(self, element):
-        self.__elements[element.element_id] = element
-        self.__grid[element.position] = element
-        self.add_connections(element)
-
-
-    # def move_element(self, element, new_position):
-    #     if element.element_id not in self.__elements or new_position in self.__grid:
-    #         raise Exception('Element doesn\'t exist or space occupied')
-    #
-    #     self.__grid.pop(element.position)
-    #     self.__elements[element.element_id].position = new_position
-    #     self.__grid[element.position] = element
-    #
-    #     self.handle_connections(element)
-
-
-
-
-    def add_connections(self, element):
-        if element.connections:
-            return
-
-        neighbors = self.get_neighbors(element)
-        for neighbor in neighbors.values():
-            if self.can_connect_to(element, neighbor) and self.can_connect_to(neighbor, element):
-                self.connect(element.element_id, neighbor.element_id)
-                if element.element_type == "room":
-                    break
-
-    def remove_connections(self, element):
-        pass
-
-
-
-    def connect(self, id1, id2):
-        el1 = self.__elements[id1]
-        el2 = self.__elements[id2]
-
-        if id1 not in self.__connections:
-            self.__connections[id1] = set()
-        if id2 not in self.__connections:
-            self.__connections[id2] = set()
-
-        self.__connections[id1].add(id2)
-        self.__connections[id2].add(id1)
-
-        if not el1.connections:
-            el1.connections = set()
-        if not el2.connections:
-            el2.connections = set()
-
-        el1.connections.add(id2)
-        el2.connections.add(id1)
-
-
-    def disconnect(self, id1, id2):
-        pass
-
-
-
-    def get_neighbors(self, element):
+    def get_element_neighbors(self, element_id):
+        element = self.__elements.get(element_id)
         x, y = element.position
         neighbor_positions = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
         neighbors = {}
+        grid = self.grid
         for pos in neighbor_positions:
-            if pos in self.__grid:
-                neighbors[pos] = self.__grid[pos]
+            if pos in grid:
+                neighbors[pos] = grid[pos]
         return neighbors
-
-    def is_neighbor(self, pos1, pos2):
-        x1, y1 = pos1
-        x2, y2 = pos2
-        return abs(x1 - x2) + abs(y1 - y2) == 1
-
-    def can_connect_to(self, element1, element2):
-        if element1.element_type == 'room':
-            return (element2.element_type in {'hallway', 'staircase'} and
-                    self.is_neighbor(element1.position, element2.position) and
-                    (not element1.connections or len(element1.connections) < 1))
-        elif element1.element_type == 'hallway' and self.is_neighbor(element2.position, element1.position):
-            return not element1.connections or len(element1.connections) < 4
-        elif element1.element_type == 'staircase' and (
-                self.is_neighbor(element2.position, element1.position) or
-                element1.floor_name != element2.floor_name):
-            return not element1.connections or len(element1.connections) < 6
-        return False

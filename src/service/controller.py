@@ -56,6 +56,18 @@ class Controller:
         return available_rooms
 
 
+    def get_sidebar_floors(self):
+        return self.__hotel_service.get_all_floors_sorted_by_level()
+
+    def get_floor_by_name(self, floor_name):
+        pass
+
+    def get_floor_grid(self, floor_name):
+        return self.__hotel_service.get_floor_grid(floor_name)
+
+    def get_floor_connections(self, floor_name):
+        return self.__hotel_service.get_connections_by_floor_name(floor_name)
+
 
     # CRUD
 
@@ -95,5 +107,42 @@ class Controller:
     def delete_reservation(self, reservation_id):
         try:
             self.__reservation_service.delete_reservation(reservation_id)
+        except Exception as e:
+            raise e
+
+
+    # Hotel
+    def add_floor(self, floor_name, level=0):
+        try:
+            self.__hotel_service.add_floor(floor_name, level)
+        except Exception as e:
+            raise e
+
+    def rename_floor(self, old_name, new_name):
+        try:
+            self.__hotel_service.rename_floor(old_name, new_name)
+        except Exception as e:
+            raise e
+
+    def update_floor_level(self, floor_id, new_level):
+        try:
+            self.__hotel_service.update_floor_level(floor_id, new_level)
+        except Exception as e:
+            raise e
+
+    def remove_floor(self, floor_id):
+        try:
+            elements = self.__hotel_service.get_elements_by_floor_id(floor_id)
+            for element in elements:
+                self.__hotel_service.remove_element(element)
+            self.__hotel_service.remove_floor(floor_id)
+        except Exception as e:
+            raise e
+
+
+
+    def add_element(self, element_data):
+        try:
+            self.__hotel_service.add_element(element_data)
         except Exception as e:
             raise e
