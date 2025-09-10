@@ -31,11 +31,15 @@ class GridCanvas(QWidget):
         self.hovered_element = None
 
         self.elements = []
+        self.connections = []
+        self.element_positions = {}
+
         self.selected_element = None
 
 
-    def set_floor_elements(self, elements_dict):
+    def set_floor_elements(self, elements_dict, connections=None):
         self.elements = []
+        self.element_positions = {}
         for pos, element in elements_dict.items():
             if element and pos:
                 if not isinstance(pos, tuple) or len(pos) != 2 or not all(isinstance(coord, int) for coord in pos):
@@ -51,7 +55,10 @@ class GridCanvas(QWidget):
                     price_per_night=getattr(element, 'price_per_night', None)
                 )
                 self.elements.append(element_widget)
+                self.element_positions[element.db_id] = pos
+        self.connections = connections or []
         self.update()
+        print("Connections passed to GridCanvas:", self.connections)
 
     def clear_floor_elements(self):
         self.elements = []
@@ -137,6 +144,9 @@ class GridCanvas(QWidget):
         #         y = row * self.cell_size
         #         painter.drawText(x + 5, y + 15, f"{col},{row}")
 
+
+
+
         for element in self.elements:
             if element != self.selected_element:
                 element.draw(painter, self.cell_size)
@@ -151,6 +161,19 @@ class GridCanvas(QWidget):
                 self.selected_element.draw(painter, self.cell_size, scene_pos)
             else:
                 self.selected_element.draw(painter, self.cell_size)
+
+        if hasattr(self, 'connections'):
+            pen = QPen(QColor(100, 100, 255), 4)
+            painter.setPen(pen)
+            for id1, id2 in self.connections:
+                pos1 = self.element_positions.get(id1)
+                pos2 = self.element_positions.get(id2)
+                if pos1 and pos2:
+                    x1 = pos1[0] * self.cell_size + self.cell_size // 2
+                    y1 = pos1[1] * self.cell_size + self.cell_size // 2
+                    x2 = pos2[0] * self.cell_size + self.cell_size // 2
+                    y2 = pos2[1] * self.cell_size + self.cell_size // 2
+                    painter.drawLine(x1, y1, x2, y2)
 
 
     def mousePressEvent(self, event):

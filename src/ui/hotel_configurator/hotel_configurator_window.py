@@ -111,7 +111,8 @@ class HotelConfiguratorWindow(QMainWindow):
         self.side_bar.floor_name_edit.setPlaceholderText(self.selected_floor.name)
         try:
             floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-            self.grid_canvas.set_floor_elements(floor_grid)
+            connections = self.controller.get_floor_connections(self.selected_floor.name)
+            self.grid_canvas.set_floor_elements(floor_grid, connections)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load floor elements: {str(e)}")
             self.grid_canvas.clear_floor_elements()
@@ -235,7 +236,8 @@ class HotelConfiguratorWindow(QMainWindow):
                 }
                 self.controller.hotel_service.add_element(element_data)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-                self.grid_canvas.set_floor_elements(floor_grid)
+                connections = self.controller.get_floor_connections(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid, connections)
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to add room: {str(e)}")
         else:
@@ -256,7 +258,8 @@ class HotelConfiguratorWindow(QMainWindow):
                 }
                 self.controller.hotel_service.add_element(element_data)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-                self.grid_canvas.set_floor_elements(floor_grid)
+                connections = self.controller.get_floor_connections(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid, connections)
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to add hallway: {str(e)}")
         else:
@@ -277,7 +280,8 @@ class HotelConfiguratorWindow(QMainWindow):
                 }
                 self.controller.hotel_service.add_element(element_data)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-                self.grid_canvas.set_floor_elements(floor_grid)
+                connections = self.controller.get_floor_connections(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid, connections)
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to add staircase: {str(e)}")
         else:
@@ -314,7 +318,8 @@ class HotelConfiguratorWindow(QMainWindow):
             self.controller.hotel_service.edit_room(self._selected_room.element_id, number, capacity, price)
 
             floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-            self.grid_canvas.set_floor_elements(floor_grid)
+            connections = self.controller.get_floor_connections(self.selected_floor.name)
+            self.grid_canvas.set_floor_elements(floor_grid, connections)
             self.grid_canvas.select_element(None)
             self.grid_canvas.update()
 
@@ -325,12 +330,8 @@ class HotelConfiguratorWindow(QMainWindow):
     def on_element_moved(self, element_id, new_position):
         self.controller.hotel_service.move_element(element_id, new_position)
         floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-        print("UPDATED GRID")
-        print(f"Updated grid contains {len(floor_grid)} elements")
-        for pos, elem in floor_grid.items():
-            print(f"Position {pos}: Element {elem.db_id}")
-
-        self.grid_canvas.set_floor_elements(floor_grid)
+        connections = self.controller.get_floor_connections(self.selected_floor.name)
+        self.grid_canvas.set_floor_elements(floor_grid, connections)
         self.grid_canvas.update()
 
     def confirm_delete_element(self, element_widget):
@@ -360,7 +361,8 @@ class HotelConfiguratorWindow(QMainWindow):
                 self.controller.hotel_service.remove_element(element)
 
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-                self.grid_canvas.set_floor_elements(floor_grid)
+                connections = self.controller.get_floor_connections(self.selected_floor.name)
+                self.grid_canvas.set_floor_elements(floor_grid, connections)
                 self.grid_canvas.select_element(None)
                 self.grid_canvas.update()
                 QMessageBox.information(self, "Success", f"{element_type} successfully deleted!")

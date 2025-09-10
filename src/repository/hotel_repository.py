@@ -1,5 +1,6 @@
 import sqlite3
 import networkx as nx
+from networkx.classes import neighbors
 
 from src.db import hotel_model as db
 from src.domain.floor import Floor
@@ -100,6 +101,16 @@ class HotelRepository:
             raise FloorNotFoundError(f"Floor {floor_id} not found!")
         return self.__floors_by_id[floor_id].elements
 
+    def get_connections_by_floor_id(self, floor_id):
+        """Returns a list of connections (edges) between elements on the specified floor. O(E) complexity."""
+        floor = self.__floors_by_id[floor_id]
+        element_ids = set(floor.elements.keys())
+        connections = set()
+        for u, v in self.__graph.edges():
+            if u in element_ids and v in element_ids:
+                connections.add(tuple(sorted((u, v))))
+        return list(connections)
+
 
     # CRUD
 
@@ -190,6 +201,8 @@ class HotelRepository:
 
             self.__graph.add_node(element.db_id)
 
+            self.handle_connections(element)
+
             if element.type == "room":
                 self.__rooms_by_id[element.db_id] = element
                 if element.capacity not in self.__rooms_by_capacity:
@@ -218,6 +231,7 @@ class HotelRepository:
                     #         if room.db_id == element_id:
                     #             room.position = new_position
                     #             break
+                    self.handle_connections(floor.elements[element_id])
                     break
         except sqlite3.IntegrityError:
             raise DatabaseError(f"Database integrity error when moving element {element_id}!")
@@ -244,6 +258,7 @@ class HotelRepository:
     def remove_element(self, element):
         """Removes the specified element from the repository and the database. O(RC) complexity."""
         try:
+            self.delete_all_connections(element.db_id)
             self.__graph.remove_node(element.db_id)
             db.delete_element(self.__connection, element.db_id)
 
@@ -266,7 +281,31 @@ class HotelRepository:
 
 
 
+    def handle_connections(self, element):
+        if element.db_id not in self.__graph:
+            raise ElementNotFoundError(f"Element {element.db_id} not found in graph!")
+        self.delete_all_connections(element.db_id)
+        element_neighbors = self.__floors_by_id[element.floor_id].get_element_neighbors(element.db_id)
+        if not element_neighbors:
+            return
+        for neighbor in element_neighbors.values():
+            if not (element.type == "room" and neighbor.type == "room"):
+                self.connect_elements(element.db_id, neighbor.db_id)
+        if element.type == "staircase":
+            for floor in self.__floors_by_id.values():
+                if floor.db_id != element.floor_id and abs(floor.level - self.__floors_by_id[element.floor_id].level) == 1:
+                    for other_element in floor.elements.values():
+                        if other_element.type == "staircase" and other_element.position == element.position:
+                            self.connect_elements(element.db_id, other_element.db_id)
+
     def connect_elements(self, from_id, to_id):
         db.insert_connection(self.__connection, from_id, to_id)
-        db.insert_connection(self.__connection, to_id, from_id)
         self.__graph.add_edge(from_id, to_id)
+
+    def delete_all_connections(self, element_id):
+        db.delete_all_connections(self.__connection, element_id)
+        self.__graph.remove_edges_from(list(self.__graph.edges(element_id)))
+
+
+
+

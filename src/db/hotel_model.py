@@ -27,8 +27,8 @@ def create_hotel_model(connection):
             element_id_1 INTEGER NOT NULL,
             element_id_2 INTEGER NOT NULL,
             PRIMARY KEY (element_id_1, element_id_2),
-            FOREIGN KEY (element_id_1) REFERENCES floor_elements(id),
-            FOREIGN KEY (element_id_2) REFERENCES floor_elements(id)
+            FOREIGN KEY (element_id_1) REFERENCES elements(id),
+            FOREIGN KEY (element_id_2) REFERENCES elements(id)
         );
     """)
     connection.commit()
@@ -189,7 +189,7 @@ def delete_connection(connection, element_id_1, element_id_2):
     except sqlite3.OperationalError as e:
         raise e
 
-def delete_all_connections_by_element_id(connection, element_id):
+def delete_all_connections(connection, element_id):
     try:
         cursor = connection.cursor()
         cursor.execute("""

@@ -30,6 +30,11 @@ class HotelService:
         elements_dict = self.__repository.get_elements_by_floor_id(floor_id)
         return list(elements_dict.values())
 
+    def get_connections_by_floor_name(self, floor_name):
+        """Returns all connections on the floor with the given name."""
+        floor_id = self.get_floor_id(floor_name)
+        return self.__repository.get_connections_by_floor_id(floor_id)
+
 
     def get_rooms_by_capacity(self, capacity):
         #TODO

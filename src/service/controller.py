@@ -65,6 +65,9 @@ class Controller:
     def get_floor_grid(self, floor_name):
         return self.__hotel_service.get_floor_grid(floor_name)
 
+    def get_floor_connections(self, floor_name):
+        return self.__hotel_service.get_connections_by_floor_name(floor_name)
+
 
     # CRUD
 

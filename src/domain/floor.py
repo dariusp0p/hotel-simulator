@@ -93,7 +93,8 @@ class Floor:
         del self.__elements[element_id]
 
 
-    def get_element_neighbors(self, element):
+    def get_element_neighbors(self, element_id):
+        element = self.__elements.get(element_id)
         x, y = element.position
         neighbor_positions = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
         neighbors = {}
