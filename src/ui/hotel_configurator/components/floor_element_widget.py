@@ -15,7 +15,7 @@ class FloorElementWidget:
         self.hovered = False
 
 
-    def draw(self, painter, cell_size, pos=None):
+    def draw_background(self, painter, cell_size, pos=None):
         if not self.position or not isinstance(self.position, tuple) or len(self.position) != 2:
             print(f"Invalid position for element: {self}")
             return
@@ -29,16 +29,12 @@ class FloorElementWidget:
 
         if self.element_type == "room":
             background_color = QColor(173, 216, 230)  # Light blue
-            text_color = QColor(0, 0, 100)
         elif self.element_type == "staircase":
             background_color = QColor(255, 249, 196)  # Light yellow
-            text_color = QColor(120, 90, 0)
         elif self.element_type == "hallway":
             background_color = QColor(211, 211, 211)  # Light gray
-            text_color = QColor(50, 50, 50)
         else:
             background_color = QColor(255, 192, 203)  # Light pink (unknown element)
-            text_color = QColor(100, 0, 0)
 
         if self.selected:
             border_width = 3
@@ -47,13 +43,33 @@ class FloorElementWidget:
             border_width = 1
             border_color = QColor(50, 50, 50)  # Dark gray
 
-
         # Draw the element rectangle
         painter.setPen(QPen(border_color, border_width))
         painter.fillRect(x, y, cell_size, cell_size, background_color)
         painter.drawRect(x, y, cell_size, cell_size)
 
-        # Draw text info
+
+    def draw_text(self, painter, cell_size, pos=None):
+        if not self.position or not isinstance(self.position, tuple) or len(self.position) != 2:
+            print(f"Invalid position for element: {self}")
+            return
+
+        if pos is not None:
+            x = int(pos.x() - cell_size / 2)
+            y = int(pos.y() - cell_size / 2)
+        else:
+            x = int(self.position[0] * cell_size)
+            y = int(self.position[1] * cell_size)
+
+        if self.element_type == "room":
+            text_color = QColor(0, 0, 100)
+        elif self.element_type == "staircase":
+            text_color = QColor(120, 90, 0)
+        elif self.element_type == "hallway":
+            text_color = QColor(50, 50, 50)
+        else:
+            text_color = QColor(100, 0, 0)
+
         painter.setPen(text_color)
         font = QFont("Arial", 10)
         font.setBold(True)
@@ -83,7 +99,6 @@ class FloorElementWidget:
                 self.element_type.capitalize()
             )
 
-
         # Draw X button when hovered
         if self.hovered:
             x_btn_size = cell_size / 4
@@ -101,8 +116,6 @@ class FloorElementWidget:
                 QPointF(x_btn_x + x_btn_size - margin, x_btn_y + margin),
                 QPointF(x_btn_x + margin, x_btn_y + x_btn_size - margin)
             )
-
-
 
 
     def is_delete_button_clicked(self, point, cell_size, offset, scale_factor):

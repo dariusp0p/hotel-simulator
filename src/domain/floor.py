@@ -103,8 +103,3 @@ class Floor:
             if pos in grid:
                 neighbors[pos] = grid[pos]
         return neighbors
-
-    def are_neighbors(self, element_1, element_2):
-        x1, y1 = element_1.position
-        x2, y2 = element_2.position
-        return abs(x1 - x2) + abs(y1 - y2) == 1

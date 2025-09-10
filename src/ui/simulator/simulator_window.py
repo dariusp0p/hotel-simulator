@@ -38,11 +38,9 @@ class SimulatorWindow(QMainWindow):
         self.figure.clear()
         ax = self.figure.add_subplot(111, projection='3d')
 
-        # --- Collect all elements and connections ---
+        # Collect all elements and their positions
         floors = self.controller.hotel_service.get_all_floors_sorted_by_level()
-        pos = {}  # element_id: (x, y, z)
-        edges = set()
-
+        pos = {}
         for floor in floors:
             z = floor.level
             elements = self.controller.hotel_service.get_elements_by_floor_id(floor.db_id)
@@ -50,18 +48,16 @@ class SimulatorWindow(QMainWindow):
                 x, y = el.position
                 pos[el.db_id] = (x, y, z)
 
-            # Get connections for this floor
-            conns = self.controller.hotel_service.get_connections_by_floor_name(floor.name)
-            for u, v in conns:
-                edges.add(tuple(sorted((u, v))))
+        # Fetch all connections in the hotel (including inter-floor)
+        all_connections = self.controller.hotel_service.get_all_connections()
 
-        # --- Draw nodes ---
+        # Draw nodes
         for el_id, (x, y, z) in pos.items():
             ax.scatter(x, y, z, s=100, c="blue")
             ax.text(x, y, z, str(el_id), color="black")
 
-        # --- Draw edges ---
-        for u, v in edges:
+        # Draw edges (including inter-floor)
+        for u, v in all_connections:
             if u in pos and v in pos:
                 x = [pos[u][0], pos[v][0]]
                 y = [pos[u][1], pos[v][1]]

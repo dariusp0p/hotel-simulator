@@ -35,6 +35,9 @@ class HotelService:
         floor_id = self.get_floor_id(floor_name)
         return self.__repository.get_connections_by_floor_id(floor_id)
 
+    def get_all_connections(self):
+        return self.__repository.get_all_connections()
+
 
     def get_rooms_by_capacity(self, capacity):
         #TODO

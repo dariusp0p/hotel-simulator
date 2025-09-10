@@ -22,14 +22,6 @@ def create_hotel_model(connection):
             price_per_night INTEGER,
             FOREIGN KEY (floor_id) REFERENCES floors(id)
         );
-        
-        CREATE TABLE IF NOT EXISTS connections (
-            element_id_1 INTEGER NOT NULL,
-            element_id_2 INTEGER NOT NULL,
-            PRIMARY KEY (element_id_1, element_id_2),
-            FOREIGN KEY (element_id_1) REFERENCES elements(id),
-            FOREIGN KEY (element_id_2) REFERENCES elements(id)
-        );
     """)
     connection.commit()
 
@@ -151,50 +143,6 @@ def delete_element(connection, element_id):
         cursor.execute("""
             DELETE FROM elements WHERE id = ?
         """, (element_id,))
-        connection.commit()
-    except sqlite3.OperationalError as e:
-        raise e
-
-
-
-# Connections
-def select_all_connections(connection):
-    try:
-        cursor = connection.cursor()
-        cursor.execute("""
-            SELECT * FROM connections
-        """)
-        return cursor.fetchall()
-    except sqlite3.OperationalError as e:
-        raise e
-
-def insert_connection(connection, element_id_1, element_id_2):
-    try:
-        cursor = connection.cursor()
-        cursor.execute("""
-            INSERT INTO connections (element_id_1, element_id_2) VALUES (?, ?)
-            """, (element_id_1, element_id_2))
-    except sqlite3.IntegrityError as e:
-        raise e
-    except sqlite3.OperationalError as e:
-        raise e
-
-def delete_connection(connection, element_id_1, element_id_2):
-    try:
-        cursor = connection.cursor()
-        cursor.execute("""
-            DELETE FROM connections WHERE element_id_1 = ? AND element_id_2 = ?
-            """, (element_id_1, element_id_2))
-        connection.commit()
-    except sqlite3.OperationalError as e:
-        raise e
-
-def delete_all_connections(connection, element_id):
-    try:
-        cursor = connection.cursor()
-        cursor.execute("""
-            DELETE FROM connections WHERE element_id_1 = ? OR element_id_2 = ?
-        """, (element_id, element_id))
         connection.commit()
     except sqlite3.OperationalError as e:
         raise e

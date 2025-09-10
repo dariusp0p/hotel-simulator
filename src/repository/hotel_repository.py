@@ -37,6 +37,9 @@ class HotelRepository:
 
             for db_id, name, level in floors:
                 floor = Floor(db_id, name, level)
+                self.__floors_by_name[floor.name] = floor
+                self.__floors_by_id[floor.db_id] = floor
+
                 elements = db.select_elements_by_floor_id(self.__connection, db_id)
                 for row in elements:
                     if row[1] == "room":
@@ -61,14 +64,10 @@ class HotelRepository:
                             position=(row[3], row[4])
                         )
                     floor.add_element(element)
-                    self.__graph.add_node(element.db_id)
+                    self.__graph.add_node(element.db_id, element=element)
+                    self.handle_connections(element)
 
-                self.__floors_by_name[floor.name] = floor
-                self.__floors_by_id[floor.db_id] = floor
-
-            connections = db.select_all_connections(self.__connection)
-            for element_id_1, element_id_2 in connections:
-                self.__graph.add_edge(element_id_1, element_id_2)
+            self.refresh_staircases()
 
         except sqlite3.OperationalError:
             raise DatabaseError("Database is unavailable or corrupted!")
@@ -111,6 +110,9 @@ class HotelRepository:
                 connections.add(tuple(sorted((u, v))))
         return list(connections)
 
+    def get_all_connections(self):
+        return list(self.__graph.edges)
+
 
     # CRUD
 
@@ -124,6 +126,7 @@ class HotelRepository:
             floor.db_id = db_id
             self.__floors_by_id[floor.db_id] = floor
             self.__floors_by_name[floor.name] = floor
+            self.refresh_staircases()
         except sqlite3.IntegrityError:
             raise DatabaseError(f"Database integrity error when adding floor {floor.name}!")
         except sqlite3.OperationalError:
@@ -138,6 +141,7 @@ class HotelRepository:
             db.update_floor_level(self.__connection, floor_id, new_level)
             floor = self.__floors_by_id[floor_id]
             floor.level = new_level
+            self.refresh_staircases()
         except sqlite3.IntegrityError:
             raise DatabaseError(f"Database integrity error when moving floor {floor_id}!")
         except sqlite3.OperationalError:
@@ -171,6 +175,7 @@ class HotelRepository:
             floor = self.__floors_by_id[floor_id]
             del self.__floors_by_id[floor.db_id]
             del self.__floors_by_name[floor.name]
+            self.refresh_staircases()
         except sqlite3.IntegrityError:
             raise DatabaseError(f"Database integrity error when deleting floor {floor_id}!")
         except sqlite3.OperationalError:
@@ -199,8 +204,7 @@ class HotelRepository:
             floor = self.__floors_by_id[element.floor_id]
             floor.add_element(element)
 
-            self.__graph.add_node(element.db_id)
-
+            self.__graph.add_node(element.db_id, element=element)
             self.handle_connections(element)
 
             if element.type == "room":
@@ -221,16 +225,6 @@ class HotelRepository:
             for floor in self.__floors_by_id.values():
                 if element_id in floor.elements:
                     floor.move_element(element_id, new_position)
-
-                    # element = floor.elements[element_id]
-                    # if element.db_id in self.__rooms_by_id:
-                    #     self.__rooms_by_id[element.db_id].position = new_position
-                    #
-                    # if hasattr(element, 'capacity') and element.capacity in self.__rooms_by_capacity:
-                    #     for room in self.__rooms_by_capacity[element.capacity]:
-                    #         if room.db_id == element_id:
-                    #             room.position = new_position
-                    #             break
                     self.handle_connections(floor.elements[element_id])
                     break
         except sqlite3.IntegrityError:
@@ -281,31 +275,49 @@ class HotelRepository:
 
 
 
-    def handle_connections(self, element):
+    def handle_connections(self, element: FloorElement):
         if element.db_id not in self.__graph:
             raise ElementNotFoundError(f"Element {element.db_id} not found in graph!")
+
         self.delete_all_connections(element.db_id)
-        element_neighbors = self.__floors_by_id[element.floor_id].get_element_neighbors(element.db_id)
-        if not element_neighbors:
+
+        neighbours = self.__floors_by_id[element.floor_id].get_element_neighbors(element.db_id).values()
+        if not neighbours:
             return
-        for neighbor in element_neighbors.values():
-            if not (element.type == "room" and neighbor.type == "room"):
-                self.connect_elements(element.db_id, neighbor.db_id)
         if element.type == "staircase":
+            for neighbour in neighbours:
+                if (neighbour.type == "staircase" or neighbour.type == "hallway"
+                        or (neighbour.type == "room" and self.__graph.degree(neighbour.db_id) == 0)):
+                    self.add_connection(element.db_id, neighbour.db_id)
             for floor in self.__floors_by_id.values():
-                if floor.db_id != element.floor_id and abs(floor.level - self.__floors_by_id[element.floor_id].level) == 1:
+                if (floor.db_id != element.floor_id and
+                        abs(floor.level - self.__floors_by_id[element.floor_id].level) == 1):
                     for other_element in floor.elements.values():
                         if other_element.type == "staircase" and other_element.position == element.position:
-                            self.connect_elements(element.db_id, other_element.db_id)
+                            self.add_connection(element.db_id, other_element.db_id)
+        elif element.type == "hallway":
+            for neighbour in neighbours:
+                if (neighbour.type == "staircase" or neighbour.type == "hallway"
+                        or (neighbour.type == "room" and self.__graph.degree(neighbour.db_id) == 0)):
+                    self.add_connection(element.db_id, neighbour.db_id)
+        elif element.type == "room":
+            for neighbour in neighbours:
+                if neighbour.type == "hallway":
+                    self.add_connection(element.db_id, neighbour.db_id)
+                    break
+        else:
+            return
 
-    def connect_elements(self, from_id, to_id):
-        db.insert_connection(self.__connection, from_id, to_id)
+    def add_connection(self, from_id, to_id):
         self.__graph.add_edge(from_id, to_id)
 
     def delete_all_connections(self, element_id):
-        db.delete_all_connections(self.__connection, element_id)
         self.__graph.remove_edges_from(list(self.__graph.edges(element_id)))
 
-
+    def refresh_staircases(self):
+        for floor in self.__floors_by_id.values():
+            for element in floor.elements.values():
+                if element.type == "staircase":
+                    self.handle_connections(element)
 
 

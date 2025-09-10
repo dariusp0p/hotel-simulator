@@ -145,25 +145,15 @@ class GridCanvas(QWidget):
         #         painter.drawText(x + 5, y + 15, f"{col},{row}")
 
 
-
-
         for element in self.elements:
             if element != self.selected_element:
-                element.draw(painter, self.cell_size)
+                element.draw_background(painter, self.cell_size)
         if self.selected_element:
-            if self.is_dragging:
-                mouse_pos = self.last_mouse_pos
-                transform = QTransform()
-                transform.translate(self.offset.x(), self.offset.y())
-                transform.scale(self.scale_factor, self.scale_factor)
-                inverse_transform, _ = transform.inverted()
-                scene_pos = inverse_transform.map(mouse_pos)
-                self.selected_element.draw(painter, self.cell_size, scene_pos)
-            else:
-                self.selected_element.draw(painter, self.cell_size)
+            if not self.is_dragging:
+                self.selected_element.draw_background(painter, self.cell_size)
 
         if hasattr(self, 'connections'):
-            pen = QPen(QColor(100, 100, 255), 4)
+            pen = QPen(QColor(255, 150, 150), 2)
             painter.setPen(pen)
             for id1, id2 in self.connections:
                 pos1 = self.element_positions.get(id1)
@@ -174,6 +164,22 @@ class GridCanvas(QWidget):
                     x2 = pos2[0] * self.cell_size + self.cell_size // 2
                     y2 = pos2[1] * self.cell_size + self.cell_size // 2
                     painter.drawLine(x1, y1, x2, y2)
+
+        for element in self.elements:
+            if element != self.selected_element:
+                element.draw_text(painter, self.cell_size)
+        if self.selected_element:
+            if self.is_dragging:
+                mouse_pos = self.last_mouse_pos
+                transform = QTransform()
+                transform.translate(self.offset.x(), self.offset.y())
+                transform.scale(self.scale_factor, self.scale_factor)
+                inverse_transform, _ = transform.inverted()
+                scene_pos = inverse_transform.map(mouse_pos)
+                self.selected_element.draw_background(painter, self.cell_size, scene_pos)
+                self.selected_element.draw_text(painter, self.cell_size, scene_pos)
+            else:
+                self.selected_element.draw_text(painter, self.cell_size)
 
 
     def mousePressEvent(self, event):
