@@ -17,9 +17,10 @@ from src.utilities.user import User
 
 
 class MainMenuPage(QWidget):
-    def __init__(self, on_reservation_click=None, on_configurator_click=None):
+    def __init__(self, on_reservation_click=None, on_simulator_click=None, on_configurator_click=None):
         super().__init__()
         self.on_reservation_click = on_reservation_click
+        self.on_simulator_click = on_simulator_click
         self.on_configurator_click = on_configurator_click
 
         self.setStyleSheet("background-color: #bfbfbf;")
@@ -48,6 +49,7 @@ class MainMenuPage(QWidget):
             self.buttons_layout.addWidget(btn)
 
         self.reservation_btn.connect(self.handle_reservation_click)
+        self.simulator_btn.connect(self.handle_simulator_click)
         self.configurator_btn.connect(self.handle_configurator_click)
 
         outer_layout = QHBoxLayout()
@@ -185,6 +187,10 @@ class MainMenuPage(QWidget):
     def handle_reservation_click(self):
         if not self.reservation_btn.is_locked() and self.on_reservation_click:
             self.on_reservation_click(self.admin_switch.isChecked())
+
+    def handle_simulator_click(self):
+        if not self.simulator_btn.is_locked() and self.on_simulator_click:
+            self.on_simulator_click()
 
     def handle_configurator_click(self):
         if self.on_configurator_click:

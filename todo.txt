@@ -9,12 +9,10 @@
 - Add edit room to sidebar - done
 - Make edit room work - done
 
-- add connections
-- prepare for undo redo
+- Understand Qt code - done
+- Review Backend code - done
 
-- Understand Qt code
-- Review Backend code
-
+- update room_by_capacity when room is edited
 
 # Reservation Manager
 - Redo UI
