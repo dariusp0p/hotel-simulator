@@ -20,7 +20,7 @@ from datetime import datetime
 
 
 
-class ReservationManagerAdminWindow(QWidget):
+class ReservationManagerWindow(QWidget):
     def __init__(self, on_back=None, controller=None):
         super().__init__()
         self.on_back = on_back
@@ -294,7 +294,7 @@ class ReservationManagerAdminWindow(QWidget):
         )
 
         for room in available_rooms:
-            self.available_rooms.addItem(f"Room {room[1]} | {room[4]} Beds")
+            self.available_rooms.addItem(f"Room {room.number} | {room.capacity} Beds")
 
     # Right
     def handle_direct_search_bar_change(self):

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 
+
 class Controller:
     def __init__(self, reservation_service, hotel_service):
         self.__reservation_service = reservation_service
@@ -10,7 +11,6 @@ class Controller:
     @property
     def hotel_service(self):
         return self.__hotel_service
-
 
 
     # Getters
@@ -34,12 +34,12 @@ class Controller:
 
     # Hotel
     def get_available_rooms(self, arrival_date, departure_date, number_of_guests):
-        rooms = self.__hotel_service.get_rooms_by_capacity(number_of_guests) # TO BE MADE IN Theta(1)
+        rooms = self.__hotel_service.get_rooms_by_capacity(number_of_guests)
 
         available_rooms = []
 
         for room in rooms:
-            room_id = room[1] # TO BE REVISED
+            room_id = room.db_id # TO BE REVISED
             reservations = self.__reservation_service.get_reservations_by_room_number(room_id) # Theta(1)
 
             arrival = datetime.strptime(arrival_date, '%Y-%m-%d').date()

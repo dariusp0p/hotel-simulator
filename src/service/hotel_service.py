@@ -38,10 +38,8 @@ class HotelService:
     def get_all_connections(self):
         return self.__repository.get_all_connections()
 
-
     def get_rooms_by_capacity(self, capacity):
-        #TODO
-        pass
+        return self.__repository.get_rooms_by_capacity(capacity)
 
 
     # CRUD

@@ -90,15 +90,15 @@ class HotelRepository:
             raise FloorNotFoundError(f"Floor {floor_name} not found!")
         return self.__floors_by_name[floor_name].db_id
 
-    # not used yet
-    def get_graph(self) -> nx.Graph:
-        return self.__graph
-
     def get_elements_by_floor_id(self, floor_id: int) -> dict:
         """Returns a dictionary of elements for the specified floor ID. Theta(1) complexity."""
         if floor_id not in self.__floors_by_id:
             raise FloorNotFoundError(f"Floor {floor_id} not found!")
         return self.__floors_by_id[floor_id].elements
+
+    def get_rooms_by_capacity(self, capacity: int) -> list[Room]:
+        """Returns a list of rooms that can accommodate the specified number of guests. Theta(1) complexity."""
+        return self.__rooms_by_capacity.get(capacity, [])
 
     def get_connections_by_floor_id(self, floor_id):
         """Returns a list of connections (edges) between elements on the specified floor. O(E) complexity."""

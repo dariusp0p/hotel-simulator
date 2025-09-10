@@ -1,12 +1,6 @@
 from PyQt6.QtWidgets import (
-    QWidget,
-    QPushButton,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLineEdit,
-    QLabel,
-    QSizePolicy,
-    QFrame,
+    QWidget, QVBoxLayout, QHBoxLayout,
+    QLineEdit, QLabel, QSizePolicy, QFrame,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette, QColor
@@ -17,11 +11,11 @@ from src.utilities.user import User
 
 
 class MainMenuPage(QWidget):
-    def __init__(self, on_reservation_click=None, on_simulator_click=None, on_configurator_click=None):
+    def __init__(self, on_reservation_manager_click=None, on_simulator_click=None, on_hotel_configurator_click=None):
         super().__init__()
-        self.on_reservation_click = on_reservation_click
+        self.on_hotel_configurator_click = on_hotel_configurator_click
+        self.on_reservation_manager_click = on_reservation_manager_click
         self.on_simulator_click = on_simulator_click
-        self.on_configurator_click = on_configurator_click
 
         self.setStyleSheet("background-color: #bfbfbf;")
 
@@ -32,25 +26,26 @@ class MainMenuPage(QWidget):
         self.init_user_section()
         self.update_button_states()
 
+
     def init_buttons(self):
         self.buttons_layout = QHBoxLayout()
         self.buttons_layout.setSpacing(20)
 
-        self.reservation_btn = AppButton("Reservation", "Manager")
+        self.hotel_configurator_btn = AppButton("Hotel", "Configurator")
+        self.reservation_manager_btn = AppButton("Reservation", "Manager")
         self.simulator_btn = AppButton("Simulator", "")
-        self.configurator_btn = AppButton("Hotel", "Configurator")
 
-        for btn in [self.reservation_btn, self.simulator_btn, self.configurator_btn]:
-            btn.setMinimumSize(240, 330)
-            btn.setMaximumSize(400, 550)
+        for btn in [self.hotel_configurator_btn, self.reservation_manager_btn, self.simulator_btn]:
+            btn.setMinimumSize(330, 240)
+            btn.setMaximumSize(550, 400)
             btn.setSizePolicy(
                 QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
             )
             self.buttons_layout.addWidget(btn)
 
-        self.reservation_btn.connect(self.handle_reservation_click)
+        self.hotel_configurator_btn.connect(self.handle_hotel_configurator_click)
+        self.reservation_manager_btn.connect(self.handle_reservation_manager_click)
         self.simulator_btn.connect(self.handle_simulator_click)
-        self.configurator_btn.connect(self.handle_configurator_click)
 
         outer_layout = QHBoxLayout()
         outer_layout.setContentsMargins(40, 0, 40, 0)
@@ -68,7 +63,7 @@ class MainMenuPage(QWidget):
         desired_width = max(240, min(per_btn_width, 400))
         desired_height = int(desired_width / 0.727)
 
-        for btn in [self.reservation_btn, self.simulator_btn, self.configurator_btn]:
+        for btn in [self.reservation_manager_btn, self.simulator_btn, self.hotel_configurator_btn]:
             btn.setFixedSize(desired_width, desired_height)
 
         self.resize_user_section()
@@ -172,26 +167,29 @@ class MainMenuPage(QWidget):
         User.is_admin = is_admin
 
         if is_admin:
-            self.reservation_btn.unlock()
+            self.reservation_manager_btn.unlock()
             self.simulator_btn.unlock()
-            self.configurator_btn.unlock()
+            self.hotel_configurator_btn.unlock()
         else:
             if username:
-                self.reservation_btn.unlock()
+                self.reservation_manager_btn.unlock()
             else:
-                self.reservation_btn.lock()
+                self.reservation_manager_btn.lock()
 
             self.simulator_btn.lock()
-            self.configurator_btn.lock()
+            self.hotel_configurator_btn.lock()
 
-    def handle_reservation_click(self):
-        if not self.reservation_btn.is_locked() and self.on_reservation_click:
-            self.on_reservation_click(self.admin_switch.isChecked())
+
+    def handle_hotel_configurator_click(self):
+        if self.on_hotel_configurator_click:
+            self.on_hotel_configurator_click()
+
+    def handle_reservation_manager_click(self):
+        if not self.reservation_manager_btn.is_locked() and self.on_reservation_manager_click:
+            # self.on_reservation_manager_click(self.admin_switch.isChecked())
+            self.on_reservation_manager_click()
+
 
     def handle_simulator_click(self):
         if not self.simulator_btn.is_locked() and self.on_simulator_click:
             self.on_simulator_click()
-
-    def handle_configurator_click(self):
-        if self.on_configurator_click:
-            self.on_configurator_click()
