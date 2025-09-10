@@ -11,6 +11,7 @@ class ReservationService:
     def __init__(self, reservation_repository: ReservationRepository):
         self.__repository = reservation_repository
 
+
     # Getters
     def get_all_reservations(self):
         return self.__repository.get_all_reservations()
@@ -21,8 +22,8 @@ class ReservationService:
     def get_reservations_by_guest_name(self, guest_name):
         return self.__repository.get_reservations_by_guest_name(guest_name)
 
-    def get_reservations_by_room_number(self, room_number):
-        return self.__repository.get_reservations_by_room_number(room_number)
+    def get_reservations_by_room_id(self, room_id):
+        return self.__repository.get_reservations_by_room_id(room_id)
 
 
     # Searches
@@ -30,7 +31,9 @@ class ReservationService:
         results = []
 
         for reservation in self.__repository.get_all_reservations():
-            if search_bar_string in reservation.reservation_id or search_bar_string.lower() in reservation.guest_name.lower() or search_bar_string.lower() in reservation.room_number.lower():
+            if (search_bar_string in reservation.reservation_id
+                    or search_bar_string.lower() in reservation.guest_name.lower()
+                    or search_bar_string.lower() in reservation.room_id.lower()):
                 results.append(reservation)
 
         if from_date:
@@ -62,9 +65,9 @@ class ReservationService:
             results.extend(reservations_by_guest_name)
             return results
 
-        reservations_by_room_number = self.__repository.get_reservations_by_room_number(search_bar_string)
-        if reservations_by_room_number:
-            results.extend(reservations_by_room_number)
+        reservations_by_room_id = self.__repository.get_reservations_by_room_id(search_bar_string)
+        if reservations_by_room_id:
+            results.extend(reservations_by_room_id)
             return results
 
         return results
@@ -75,7 +78,7 @@ class ReservationService:
     def make_reservation(self, reservation_data: dict) -> None:
         reservation = Reservation(
             reservation_id=self.generate_reservation_id(reservation_data),
-            room_number=reservation_data['room_number'],
+            room_id=reservation_data['room_id'],
             guest_name=reservation_data['guest_name'],
             number_of_guests=reservation_data['number_of_guests'],
             check_in_date=datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").date(),
@@ -94,7 +97,7 @@ class ReservationService:
     def update_reservation(self, reservation_data: dict) -> None:
         reservation = Reservation(
             reservation_id=reservation_data['reservation_id'],
-            room_number=reservation_data['room_number'],
+            room_id=reservation_data['room_id'],
             guest_name=reservation_data['guest_name'],
             number_of_guests=reservation_data['number_of_guests'],
             check_in_date=datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").date(),
@@ -121,5 +124,5 @@ class ReservationService:
         check_out_day = datetime.strptime(reservation_data['check_out_date'], "%Y-%m-%d").strftime("%d")
 
         code = str(randint(0, 9)) + str(randint(0, 9)) + str(randint(0, 9))
-        reservation_id = "R" + reservation_data['room_number'] + year + month + check_in_day + check_out_day + code
+        reservation_id = "R" + reservation_data['room_id'] + year + month + check_in_day + check_out_day + code
         return reservation_id

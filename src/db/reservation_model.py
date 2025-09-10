@@ -8,7 +8,7 @@ def create_reservation_model(connection):
         CREATE TABLE IF NOT EXISTS reservations (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             reservation_id TEXT UNIQUE NOT NULL, 
-            room_number TEXT NOT NULL, 
+            room_id INTEGER NOT NULL, 
             guest_name TEXT NOT NULL, 
             number_of_guests INTEGER NOT NULL, 
             check_in_date TEXT NOT NULL, 
@@ -16,7 +16,6 @@ def create_reservation_model(connection):
         )
     """)
     connection.commit()
-
 
 
 def select_all_reservations(connection):
@@ -40,26 +39,26 @@ def select_reservation_by_reservation_id(connection, reservation_id):
         raise e
 
 
-def insert_reservation(connection, reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date):
+def insert_reservation(connection, reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            INSERT INTO reservations (reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)
-        """, (reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date))
+            INSERT INTO reservations (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)
+        """, (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date))
         connection.commit()
     except sqlite3.IntegrityError as e:
         raise e
     except sqlite3.OperationalError as e:
         raise e
 
-def update_reservation(connection, db_id, reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date):
+def update_reservation(connection, db_id, reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date):
     try:
         cursor = connection.cursor()
         cursor.execute("""
             UPDATE reservations
-            SET reservation_id = ?, room_number = ?, guest_name = ?, number_of_guests = ?, check_in_date = ?, check_out_date = ?
+            SET reservation_id = ?, room_id = ?, guest_name = ?, number_of_guests = ?, check_in_date = ?, check_out_date = ?
             WHERE id = ?
-            """, (reservation_id, room_number, guest_name, number_of_guests, check_in_date, check_out_date, db_id))
+            """, (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date, db_id))
         connection.commit()
     except sqlite3.IntegrityError as e:
         raise e

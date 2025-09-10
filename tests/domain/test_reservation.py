@@ -6,7 +6,7 @@ from src.domain.reservation import Reservation
 
 def test_valid_reservation_passes():
     reservation = Reservation(
-        room_number="101",
+        room_id="101",
         guest_name="John Doe",
         number_of_guests=2,
         check_in_date=date.today(),
@@ -17,7 +17,7 @@ def test_valid_reservation_passes():
 
 def test_invalid_room_number_type():
     reservation = Reservation(
-        room_number=101,  # int, not str
+        room_id=101,  # int, not str
         guest_name="John Doe",
         number_of_guests=2,
         check_in_date=date.today(),
@@ -29,7 +29,7 @@ def test_invalid_room_number_type():
 
 def test_invalid_guest_number_type():
     reservation = Reservation(
-        room_number="101",
+        room_id="101",
         guest_name="John Doe",
         number_of_guests="two",  # str, not int
         check_in_date=date.today(),
@@ -41,7 +41,7 @@ def test_invalid_guest_number_type():
 
 def test_invalid_dates_type():
     reservation = Reservation(
-        room_number="101",
+        room_id="101",
         guest_name="John Doe",
         number_of_guests=2,
         check_in_date="2025-07-18",  # str, not date
@@ -53,7 +53,7 @@ def test_invalid_dates_type():
 
 def test_checkin_after_checkout():
     reservation = Reservation(
-        room_number="101",
+        room_id="101",
         guest_name="John Doe",
         number_of_guests=2,
         check_in_date=date.today() + timedelta(days=2),
@@ -65,7 +65,7 @@ def test_checkin_after_checkout():
 
 def test_multiple_errors():
     reservation = Reservation(
-        room_number=101,  # int
+        room_id=101,  # int
         guest_name="John Doe",
         number_of_guests="two",  # str
         check_in_date="not a date",

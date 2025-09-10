@@ -26,7 +26,7 @@ def repo():
 def test_add_and_get_reservation(repo):
     reservation = Reservation(
         reservation_id="abc123",
-        room_number="101",
+        room_id="101",
         guest_name="Alice",
         number_of_guests=2,
         check_in_date=date(2025, 7, 20),
@@ -43,7 +43,7 @@ def test_add_and_get_reservation(repo):
 def test_duplicate_reservation_id_raises(repo):
     reservation = Reservation(
         reservation_id="dup123",
-        room_number="102",
+        room_id="102",
         guest_name="Bob",
         number_of_guests=2,
         check_in_date=date(2025, 7, 20),
@@ -56,7 +56,7 @@ def test_duplicate_reservation_id_raises(repo):
 def test_update_reservation(repo):
     reservation = Reservation(
         reservation_id="upd123",
-        room_number="103",
+        room_id="103",
         guest_name="Charlie",
         number_of_guests=2,
         check_in_date=date(2025, 7, 20),
@@ -75,7 +75,7 @@ def test_update_nonexistent_reservation_raises(repo):
     reservation = Reservation(
         db_id=9999,
         reservation_id="doesnotexist",
-        room_number="404",
+        room_id="404",
         guest_name="Nobody",
         number_of_guests=1,
         check_in_date=date(2025, 7, 20),
@@ -87,7 +87,7 @@ def test_update_nonexistent_reservation_raises(repo):
 def test_delete_reservation(repo):
     reservation = Reservation(
         reservation_id="del123",
-        room_number="105",
+        room_id="105",
         guest_name="Daisy",
         number_of_guests=2,
         check_in_date=date(2025, 7, 20),
@@ -108,7 +108,7 @@ def test_get_by_room_number_and_guest_name_empty(repo):
 def test_delete_operational_error(repo):
     reservation = Reservation(
         reservation_id="failtest",
-        room_number="500",
+        room_id="500",
         guest_name="Ghost",
         number_of_guests=1,
         check_in_date=date(2025, 7, 20),
@@ -123,7 +123,7 @@ def test_delete_operational_error(repo):
 def test_update_operational_error(repo):
     reservation = Reservation(
         reservation_id="failupdate",
-        room_number="501",
+        room_id="501",
         guest_name="Ghost2",
         number_of_guests=1,
         check_in_date=date(2025, 7, 20),
@@ -151,7 +151,7 @@ def test_load_from_db(repo):
 def test_cache_cleanup_on_delete(repo):
     reservation = Reservation(
         reservation_id="unique1",
-        room_number="301",
+        room_id="301",
         guest_name="CleanupGuest",
         number_of_guests=1,
         check_in_date=date(2025, 7, 20),

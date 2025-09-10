@@ -16,7 +16,7 @@ def test_add_and_get_reservation(connection):
     db.insert_reservation(
         connection,
         reservation_id="test-123",
-        room_number="101",
+        room_id="101",
         guest_name="John Doe",
         number_of_guests=2,
         check_in_date="2025-07-20",
@@ -35,7 +35,7 @@ def test_add_reservation_duplicate_id(connection):
     db.insert_reservation(
         connection,
         reservation_id="unique-id",
-        room_number="101",
+        room_id="101",
         guest_name="Jane Doe",
         number_of_guests=2,
         check_in_date="2025-07-20",
@@ -45,7 +45,7 @@ def test_add_reservation_duplicate_id(connection):
         db.insert_reservation(
             connection,
             reservation_id="unique-id",  # Same ID again
-            room_number="102",
+            room_id="102",
             guest_name="Different Guest",
             number_of_guests=3,
             check_in_date="2025-07-23",

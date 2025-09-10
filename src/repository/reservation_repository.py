@@ -14,7 +14,7 @@ class ReservationRepository:
 
         self.__by_db_id = {}
         self.__by_reservation_id = {}
-        self.__by_room_number = {}
+        self.__by_room_id = {}
         self.__by_guest_name = {}
 
         self.load_from_db()
@@ -33,7 +33,7 @@ class ReservationRepository:
                 reservation = Reservation(
                     db_id=row[0],
                     reservation_id=row[1],
-                    room_number=row[2],
+                    room_id=row[2],
                     guest_name=row[3],
                     number_of_guests=row[4],
                     check_in_date=datetime.strptime(row[5], "%Y-%m-%d").date(),
@@ -50,9 +50,9 @@ class ReservationRepository:
         self.__by_db_id[reservation.db_id] = reservation
         self.__by_reservation_id[reservation.reservation_id] = reservation
 
-        if reservation.room_number not in self.__by_room_number:
-            self.__by_room_number[reservation.room_number] = []
-        self.__by_room_number[reservation.room_number].append(reservation)
+        if reservation.room_number not in self.__by_room_id:
+            self.__by_room_id[reservation.room_number] = []
+        self.__by_room_id[reservation.room_number].append(reservation)
 
         if reservation.guest_name not in self.__by_guest_name:
             self.__by_guest_name[reservation.guest_name] = []
@@ -62,11 +62,11 @@ class ReservationRepository:
         self.__by_db_id.pop(reservation.db_id, None)
         self.__by_reservation_id.pop(reservation.reservation_id, None)
 
-        if reservation.room_number in self.__by_room_number:
+        if reservation.room_number in self.__by_room_id:
             try:
-                self.__by_room_number[reservation.room_number].remove(reservation)
-                if not self.__by_room_number[reservation.room_number]:
-                    del self.__by_room_number[reservation.room_number]
+                self.__by_room_id[reservation.room_number].remove(reservation)
+                if not self.__by_room_id[reservation.room_number]:
+                    del self.__by_room_id[reservation.room_number]
             except ValueError:
                 pass
 
@@ -86,8 +86,8 @@ class ReservationRepository:
     def get_by_reservation_id(self, reservation_id):
         return self.__by_reservation_id.get(reservation_id)
 
-    def get_reservations_by_room_number(self, room_number):
-        return self.__by_room_number.get(room_number, [])
+    def get_reservations_by_room_id(self, room_id):
+        return self.__by_room_id.get(room_id, [])
 
     def get_reservations_by_guest_name(self, guest_name):
         return self.__by_guest_name.get(guest_name, [])
@@ -99,7 +99,7 @@ class ReservationRepository:
             db.insert_reservation(
                 self.__connection,
                 reservation.reservation_id,
-                reservation.room_number,
+                reservation.room_id,
                 reservation.guest_name,
                 reservation.number_of_guests,
                 reservation.check_in_date.isoformat(),
@@ -125,7 +125,7 @@ class ReservationRepository:
                 self.__connection,
                 old_reservation.db_id,
                 reservation.reservation_id,
-                reservation.room_number,
+                reservation.room_id,
                 reservation.guest_name,
                 reservation.number_of_guests,
                 reservation.check_in_date.isoformat(),
