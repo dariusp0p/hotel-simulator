@@ -67,8 +67,6 @@ class Reservation:
 
     def validate(self):
         errors = []
-        if not isinstance(self.__room_id, str):
-            errors.append("Invalid room!")
         if not isinstance(self.__number_of_guests, int):
             errors.append("Invalid guest number!")
         if not isinstance(self.__check_in_date, date) or not isinstance(self.__check_out_date, date):

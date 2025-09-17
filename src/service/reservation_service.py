@@ -19,9 +19,6 @@ class ReservationService:
     def get_by_reservation_id(self, reservation_id):
         return self.__repository.get_by_reservation_id(reservation_id)
 
-    def get_reservations_by_guest_name(self, guest_name):
-        return self.__repository.get_reservations_by_guest_name(guest_name)
-
     def get_reservations_by_room_id(self, room_id):
         return self.__repository.get_reservations_by_room_id(room_id)
 
@@ -32,8 +29,7 @@ class ReservationService:
 
         for reservation in self.__repository.get_all_reservations():
             if (search_bar_string in reservation.reservation_id
-                    or search_bar_string.lower() in reservation.guest_name.lower()
-                    or search_bar_string.lower() in reservation.room_id.lower()):
+                    or search_bar_string.lower() in reservation.guest_name.lower()):
                 results.append(reservation)
 
         if from_date:
@@ -65,10 +61,10 @@ class ReservationService:
             results.extend(reservations_by_guest_name)
             return results
 
-        reservations_by_room_id = self.__repository.get_reservations_by_room_id(search_bar_string)
-        if reservations_by_room_id:
-            results.extend(reservations_by_room_id)
-            return results
+        # reservations_by_room_id = self.__repository.get_reservations_by_room_id(search_bar_string)
+        # if reservations_by_room_id:
+        #     results.extend(reservations_by_room_id)
+        #     return results
 
         return results
 
@@ -124,5 +120,5 @@ class ReservationService:
         check_out_day = datetime.strptime(reservation_data['check_out_date'], "%Y-%m-%d").strftime("%d")
 
         code = str(randint(0, 9)) + str(randint(0, 9)) + str(randint(0, 9))
-        reservation_id = "R" + reservation_data['room_id'] + year + month + check_in_day + check_out_day + code
+        reservation_id = "R" + str(reservation_data['room_id']) + year + month + check_in_day + check_out_day + code
         return reservation_id

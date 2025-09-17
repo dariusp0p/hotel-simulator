@@ -12,15 +12,19 @@ from src.ui.hotel_configurator.components.grid_canvas_widget import GridCanvas
 
 
 class HotelConfiguratorWindow(QMainWindow):
-    def __init__(self, on_back=None, controller=None):
+    def __init__(self, on_back, controller):
         super().__init__()
         self.on_back = on_back
         self.controller = controller
 
+        self.selected_floor = None
+
+        self.setup_ui()
+
+
+    def setup_ui(self):
         self.setWindowTitle("Hotel Configurator")
         self.resize(1200, 800)
-
-        self.selected_floor = None
 
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)

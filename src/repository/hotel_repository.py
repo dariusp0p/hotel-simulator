@@ -96,6 +96,20 @@ class HotelRepository:
             raise FloorNotFoundError(f"Floor {floor_id} not found!")
         return self.__floors_by_id[floor_id].elements
 
+    def get_room_by_id(self, room_id: int) -> Room:
+        """Returns the room with the specified ID. Theta(1) complexity."""
+        room = self.__rooms_by_id.get(room_id)
+        if not room:
+            raise ElementNotFoundError(f"Room {room_id} not found!")
+        return room
+
+    def get_room_by_number(self, room_number: str) -> Room:
+        """Returns the room with the specified number. O(R) complexity."""
+        for room in self.__rooms_by_id.values():
+            if room.number == room_number:
+                return room
+        raise ElementNotFoundError(f"Room with number {room_number} not found!")
+
     def get_rooms_by_capacity(self, capacity: int) -> list[Room]:
         """Returns a list of rooms that can accommodate the specified number of guests. Theta(1) complexity."""
         return self.__rooms_by_capacity.get(capacity, [])

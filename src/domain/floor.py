@@ -36,7 +36,7 @@ class Floor:
     def elements(self):
         return self.__elements
 
-    def build_grid(self):
+    def _build_grid(self):
         grid_dict = {}
         for element in self.__elements.values():
             if element.position:
@@ -46,7 +46,7 @@ class Floor:
     @property
     def grid(self):
         if self.__grid_cache is None:
-            self.__grid_cache = self.build_grid()
+            self.__grid_cache = self._build_grid()
         return self.__grid_cache
 
 

@@ -50,9 +50,9 @@ class ReservationRepository:
         self.__by_db_id[reservation.db_id] = reservation
         self.__by_reservation_id[reservation.reservation_id] = reservation
 
-        if reservation.room_number not in self.__by_room_id:
-            self.__by_room_id[reservation.room_number] = []
-        self.__by_room_id[reservation.room_number].append(reservation)
+        if reservation.room_id not in self.__by_room_id:
+            self.__by_room_id[reservation.room_id] = []
+        self.__by_room_id[reservation.room_id].append(reservation)
 
         if reservation.guest_name not in self.__by_guest_name:
             self.__by_guest_name[reservation.guest_name] = []
@@ -62,11 +62,11 @@ class ReservationRepository:
         self.__by_db_id.pop(reservation.db_id, None)
         self.__by_reservation_id.pop(reservation.reservation_id, None)
 
-        if reservation.room_number in self.__by_room_id:
+        if reservation.room_id in self.__by_room_id:
             try:
-                self.__by_room_id[reservation.room_number].remove(reservation)
-                if not self.__by_room_id[reservation.room_number]:
-                    del self.__by_room_id[reservation.room_number]
+                self.__by_room_id[reservation.room_id].remove(reservation)
+                if not self.__by_room_id[reservation.room_id]:
+                    del self.__by_room_id[reservation.room_id]
             except ValueError:
                 pass
 

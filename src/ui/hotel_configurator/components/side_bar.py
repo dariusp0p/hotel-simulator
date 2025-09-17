@@ -7,7 +7,8 @@ from src.ui.hotel_configurator.components.floor_list_widget import FloorListWidg
 
 
 class SideBar(QWidget):
-    def __init__(self, controller, on_floor_selected, on_floors_reordered, on_add_floor, on_remove_floor, on_update_floor_name, on_update_room, parent=None):
+    def __init__(self, controller, on_floor_selected, on_floors_reordered, on_add_floor, on_remove_floor,
+                 on_update_floor_name, on_update_room, parent=None):
         super().__init__(parent)
         self.controller = controller
         self.on_floor_selected = on_floor_selected
@@ -17,6 +18,10 @@ class SideBar(QWidget):
         self.on_update_floor_name = on_update_floor_name
         self.on_update_room = on_update_room
 
+        self.setup_ui()
+
+
+    def setup_ui(self):
         self.setFixedWidth(250)
         self.setAutoFillBackground(True)
 
@@ -200,10 +205,11 @@ class SideBar(QWidget):
 
         self.populate_floor_list()
 
+
     def populate_floor_list(self):
         self.floor_list.clear()
 
-        floors = self.controller.get_sidebar_floors()
+        floors = self.controller.get_all_floors()
         for floor in floors:
             item = QListWidgetItem(floor.name)
             item.setData(Qt.ItemDataRole.UserRole, floor)
