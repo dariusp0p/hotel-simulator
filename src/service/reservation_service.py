@@ -114,11 +114,12 @@ class ReservationService:
 
     # Utilities
     def generate_reservation_id(self, reservation_data):
+        room_id = str(reservation_data['room_id']).zfill(3)
         year = str(datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").year)[-2:]
         month = datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").strftime("%m")
         check_in_day = datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").strftime("%d")
         check_out_day = datetime.strptime(reservation_data['check_out_date'], "%Y-%m-%d").strftime("%d")
-
         code = str(randint(0, 9)) + str(randint(0, 9)) + str(randint(0, 9))
-        reservation_id = "R" + str(reservation_data['room_id']) + year + month + check_in_day + check_out_day + code
+
+        reservation_id = "R" + room_id + year + month + check_in_day + check_out_day + code
         return reservation_id

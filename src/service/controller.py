@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from src.service.dto import FloorDTO, FloorElementDTO, RoomDTO, ReservationDTO
+from src.utilities.exceptions import ServiceError
 
 
 
@@ -47,21 +48,6 @@ class Controller:
                 result.append(self._to_room_dto(room))
         return result
 
-    def is_room_available(self, room_id, arrival_date, departure_date, number_of_guests):
-        arrival = self._parse_iso_date(arrival_date)
-        departure = self._parse_iso_date(departure_date)
-
-        room = self.__hotel_service.get_room_by_id(room_id)
-        if room is None or room.capacity < number_of_guests:
-            return False
-
-        reservations = self.__reservation_service.get_reservations_by_room_id(room_id)
-        is_available = all(
-            not (arrival <= res.check_out_date and departure >= res.check_in_date)
-            for res in reservations
-        )
-        return is_available
-
     def get_all_floors(self):
         result = self.__hotel_service.get_all_floors_sorted_by_level()
         return [self._to_floor_dto(floor) for floor in result]
@@ -106,6 +92,8 @@ class Controller:
             "check_in_date": arrival_date,
             "check_out_date": departure_date,
         }
+        if not self.is_room_available(room_id, arrival_date, departure_date, guest_number):
+            raise ServiceError("Room is not available for the selected dates or guest number!")
         try:
             self.__reservation_service.make_reservation(reservation_data)
         except Exception as e:
@@ -120,6 +108,8 @@ class Controller:
             "check_in_date": arrival_date,
             "check_out_date": departure_date,
         }
+        if not self.is_room_available(room_id, arrival_date, departure_date, guest_number, reservation_id):
+            raise ServiceError("Room is not available for the selected dates or guest number!")
         try:
             self.__reservation_service.update_reservation(reservation_data)
         except Exception as e:
@@ -130,6 +120,27 @@ class Controller:
             self.__reservation_service.delete_reservation(reservation_id)
         except Exception as e:
             raise e
+
+
+    def is_room_available(self, room_id, arrival_date, departure_date, number_of_guests, reservation_id=None):
+        arrival = self._parse_iso_date(arrival_date)
+        departure = self._parse_iso_date(departure_date)
+
+        room = self.__hotel_service.get_room_by_id(room_id)
+        if room is None or room.capacity < number_of_guests:
+            return False
+        print("passed room capacity check")
+
+        reservations = self.__reservation_service.get_reservations_by_room_id(room_id)
+        is_available = all(
+            (reservation_id is not None and getattr(res, "reservation_id", None) == reservation_id) or
+            not (arrival <= res.check_out_date and departure >= res.check_in_date)
+            for res in reservations
+        )
+        return is_available
+
+
+
 
 
     # Hotel
@@ -154,8 +165,8 @@ class Controller:
     def remove_floor(self, floor_id):
         try:
             elements = self.__hotel_service.get_elements_by_floor_id(floor_id)
-            for element in elements:
-                self.__hotel_service.remove_element(element)
+            for elem in elements:
+                self.__hotel_service.remove_element(elem.db_id)
             self.__hotel_service.remove_floor(floor_id)
         except Exception as e:
             raise e
@@ -168,6 +179,42 @@ class Controller:
         except Exception as e:
             raise e
 
+    def edit_room(self, element_id, new_number, new_capacity, new_price_per_night):
+        try:
+            self.__hotel_service.edit_room(element_id, new_number, new_capacity, new_price_per_night)
+        except Exception as e:
+            raise e
+
+    def move_element(self, element_id, new_position):
+        try:
+            self.__hotel_service.move_element(element_id, new_position)
+        except Exception as e:
+            raise e
+
+    def remove_element(self, element_id):
+        try:
+            try:
+                room = self.__hotel_service.get_room_by_id(element_id)
+                reservations = self.__reservation_service.get_reservations_by_room_id(room.db_id)
+                for res in reservations:
+                    self.__reservation_service.delete_reservation(res.reservation_id)
+            except Exception:
+                pass
+            self.__hotel_service.remove_element(element_id)
+        except Exception as e:
+            raise e
+
+    def get_floor_number_of_rooms(self, floor_id):
+        elements = self.__hotel_service.get_elements_by_floor_id(floor_id)
+        rooms = [el for el in elements if el.type == 'room']
+        nr_of_reservations = 0
+        for room in rooms:
+            nr_of_reservations += self.get_room_number_of_reservations(room.db_id)
+        return len(rooms), nr_of_reservations
+
+    def get_room_number_of_reservations(self, room_id):
+        reservations = self.__reservation_service.get_reservations_by_room_id(room_id)
+        return len(reservations)
 
 
 
@@ -182,7 +229,9 @@ class Controller:
 
     # DTO Conversion
     def _to_floor_dto(self, floor) -> FloorDTO:
-        return FloorDTO(db_id=floor.db_id, name=floor.name, level=floor.level)
+        elements = {el_id: self._to_floor_element_dto(el) if el.type != 'room' else self._to_room_dto(el)
+                    for el_id, el in floor.elements.items()}
+        return FloorDTO(db_id=floor.db_id, name=floor.name, level=floor.level, elements=elements)
 
     def _to_floor_element_dto(self, floor_element) -> FloorElementDTO:
         return FloorElementDTO(

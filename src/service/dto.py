@@ -8,6 +8,7 @@ class FloorDTO:
     db_id: int
     name: str
     level: int
+    elements: dict[int, 'FloorElementDTO']
 
 @dataclass(frozen=True)
 class FloorElementDTO:

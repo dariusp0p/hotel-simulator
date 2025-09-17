@@ -143,19 +143,22 @@ class HotelConfiguratorWindow(QMainWindow):
             return
 
     def on_floors_reordered(self):
+        updates = []
         for i in range(self.side_bar.floor_list.count()):
             item = self.side_bar.floor_list.item(i)
             floor = item.data(Qt.ItemDataRole.UserRole)
             new_level = self.side_bar.floor_list.count() - 1 - i
-
             if floor.level != new_level:
-                try:
-                    self.controller.update_floor_level(floor.db_id, new_level)
-                    floor.level = new_level
-                except Exception as e:
-                    QMessageBox.critical(self, "Error", f"Failed to update floor order: {str(e)}")
-                    self.side_bar.populate_floor_list()
-                    return
+                updates.append((floor.db_id, new_level))
+
+        for floor_id, level in updates:
+            try:
+                self.controller.update_floor_level(floor_id, level)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to update floor order: {str(e)}")
+                return
+
+        self.side_bar.populate_floor_list()
 
     def on_update_floor_name(self):
         if not self.selected_floor:
@@ -173,7 +176,6 @@ class HotelConfiguratorWindow(QMainWindow):
 
         try:
             self.controller.rename_floor(old_name, new_name)
-            self.selected_floor.name = new_name
             self.side_bar.populate_floor_list()
             QMessageBox.information(self, "Success", "Floor renamed successfully!")
         except Exception as e:
@@ -181,6 +183,17 @@ class HotelConfiguratorWindow(QMainWindow):
 
     def on_remove_floor(self):
         selected_floor = self.selected_floor
+        num_rooms, num_reservations = self.controller.get_floor_number_of_rooms(selected_floor.db_id)
+        if num_rooms > 0:
+            reply = QMessageBox.question(
+                self,
+                "Delete Floor",
+                f"This floor contains {num_rooms} room(s) and {num_reservations} reservation(s). Deleting it will remove all rooms and their reservations. Continue?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
         try:
             self.controller.remove_floor(selected_floor.db_id)
             self.side_bar.populate_floor_list()
@@ -238,7 +251,7 @@ class HotelConfiguratorWindow(QMainWindow):
                     "capacity": 2,
                     "price_per_night": 100
                 }
-                self.controller.hotel_service.add_element(element_data)
+                self.controller.add_element(element_data)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
                 connections = self.controller.get_floor_connections(self.selected_floor.name)
                 self.grid_canvas.set_floor_elements(floor_grid, connections)
@@ -260,7 +273,7 @@ class HotelConfiguratorWindow(QMainWindow):
                     "floor_id": self.selected_floor.db_id,
                     "position": position,
                 }
-                self.controller.hotel_service.add_element(element_data)
+                self.controller.add_element(element_data)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
                 connections = self.controller.get_floor_connections(self.selected_floor.name)
                 self.grid_canvas.set_floor_elements(floor_grid, connections)
@@ -282,7 +295,7 @@ class HotelConfiguratorWindow(QMainWindow):
                     "floor_id": self.selected_floor.db_id,
                     "position": position,
                 }
-                self.controller.hotel_service.add_element(element_data)
+                self.controller.add_element(element_data)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
                 connections = self.controller.get_floor_connections(self.selected_floor.name)
                 self.grid_canvas.set_floor_elements(floor_grid, connections)
@@ -319,7 +332,7 @@ class HotelConfiguratorWindow(QMainWindow):
                 QMessageBox.warning(self, "Warning", "Price must be a valid number")
                 return
 
-            self.controller.hotel_service.edit_room(self._selected_room.element_id, number, capacity, price)
+            self.controller.edit_room(self._selected_room.element_id, number, capacity, price)
 
             floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
             connections = self.controller.get_floor_connections(self.selected_floor.name)
@@ -332,7 +345,7 @@ class HotelConfiguratorWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to update room: {str(e)}")
 
     def on_element_moved(self, element_id, new_position):
-        self.controller.hotel_service.move_element(element_id, new_position)
+        self.controller.move_element(element_id, new_position)
         floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
         connections = self.controller.get_floor_connections(self.selected_floor.name)
         self.grid_canvas.set_floor_elements(floor_grid, connections)
@@ -362,8 +375,7 @@ class HotelConfiguratorWindow(QMainWindow):
 
         if reply == QMessageBox.StandardButton.Yes:
             try:
-                self.controller.hotel_service.remove_element(element)
-
+                self.controller.remove_element(element)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
                 connections = self.controller.get_floor_connections(self.selected_floor.name)
                 self.grid_canvas.set_floor_elements(floor_grid, connections)

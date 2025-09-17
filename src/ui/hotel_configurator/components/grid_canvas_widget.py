@@ -62,6 +62,7 @@ class GridCanvas(QWidget):
 
     def clear_floor_elements(self):
         self.elements = []
+        self.connections = []
         self.selected_element = None
         self.update()
 
