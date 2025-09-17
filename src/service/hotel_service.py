@@ -17,6 +17,10 @@ class HotelService:
         floors = self.__repository.get_all_floors()
         return sorted(floors, key=lambda floor: floor.level, reverse=True)
 
+    def get_floor(self, floor_id) -> Floor:
+        """Returns the floor with the given ID."""
+        return self.__repository.get_floor_by_id(floor_id)
+
     def get_floor_id(self, floor_name) -> int:
         """Returns the ID of the floor with the given name."""
         return self.__repository.get_floor_id(floor_name)

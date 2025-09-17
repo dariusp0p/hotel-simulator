@@ -78,6 +78,12 @@ class HotelRepository:
         """Returns a list of all floors. Theta(1) complexity."""
         return list(self.__floors_by_id.values())
 
+    def get_floor_by_id(self, floor_id: int) -> Floor:
+        """Returns the floor with the specified ID. Theta(1) complexity."""
+        if floor_id not in self.__floors_by_id:
+            raise FloorNotFoundError(f"Floor {floor_id} not found!")
+        return self.__floors_by_id[floor_id]
+
     def get_floor_grid(self, floor_name: str) -> dict:
         """Returns a dictionary representing the grid of the specified floor. Theta(1) complexity."""
         if floor_name not in self.__floors_by_name:

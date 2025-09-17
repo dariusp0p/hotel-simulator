@@ -48,6 +48,9 @@ class Controller:
                 result.append(self._to_room_dto(room))
         return result
 
+    def get_floor(self, floor_id):
+        return self._to_floor_dto(self.__hotel_service.get_floor(floor_id))
+
     def get_all_floors(self):
         result = self.__hotel_service.get_all_floors_sorted_by_level()
         return [self._to_floor_dto(floor) for floor in result]

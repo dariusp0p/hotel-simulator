@@ -5,7 +5,7 @@ from PyQt6.QtGui import QColor
 
 
 class HotBar(QWidget):
-    def __init__(self, add_room_callback, add_hallway_callback, add_staircase_callback, parent=None):
+    def __init__(self, add_element_callback, parent=None):
         super().__init__(parent)
         self.setFixedHeight(60)
         self.setAutoFillBackground(True)
@@ -26,7 +26,7 @@ class HotBar(QWidget):
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
         add_room_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_room_btn.clicked.connect(add_room_callback)
+        add_room_btn.clicked.connect(lambda: add_element_callback("room"))
 
         add_hallway_btn = QPushButton("Add Hallway")
         add_hallway_btn.setFixedHeight(40)
@@ -35,7 +35,7 @@ class HotBar(QWidget):
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
         add_hallway_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_hallway_btn.clicked.connect(add_hallway_callback)
+        add_hallway_btn.clicked.connect(lambda: add_element_callback("hallway"))
 
         add_staircase_btn = QPushButton("Add Staircase")
         add_staircase_btn.setFixedHeight(40)
@@ -44,7 +44,7 @@ class HotBar(QWidget):
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
         add_staircase_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_staircase_btn.clicked.connect(add_staircase_callback)
+        add_staircase_btn.clicked.connect(lambda: add_element_callback("staircase"))
 
         layout.addWidget(add_room_btn)
         layout.addWidget(add_hallway_btn)

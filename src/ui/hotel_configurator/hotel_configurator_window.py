@@ -51,9 +51,7 @@ class HotelConfiguratorWindow(QMainWindow):
         )
 
         self.hot_bar = HotBar(
-            add_room_callback=self.add_room,
-            add_hallway_callback=self.add_hallway,
-            add_staircase_callback=self.add_staircase
+            add_element_callback=self.add_element
         )
 
         self.layout = QVBoxLayout(self.main_widget)
@@ -235,7 +233,7 @@ class HotelConfiguratorWindow(QMainWindow):
         self._selected_room = room
         self.side_bar.display_room_details(room)
 
-    def add_room(self):
+    def add_element(self, element_type):
         if not self.selected_floor:
             QMessageBox.warning(self, "Warning", "Please select a floor first")
             return
@@ -243,15 +241,31 @@ class HotelConfiguratorWindow(QMainWindow):
         position = self.find_first_free_position()
         if position:
             try:
-                element_data = {
-                    "type": "room",
-                    "floor_id": self.selected_floor.db_id,
-                    "position": position,
-                    "number": "Nr.",
-                    "capacity": 2,
-                    "price_per_night": 100
-                }
+                if element_type == "room":
+                    element_data = {
+                        "type": "room",
+                        "floor_id": self.selected_floor.db_id,
+                        "position": position,
+                        "number": "1",
+                        "capacity": 2,
+                        "price_per_night": 100
+                    }
+                elif element_type == "hallway":
+                    element_data = {
+                        "type": "hallway",
+                        "floor_id": self.selected_floor.db_id,
+                        "position": position,
+                    }
+                elif element_type == "staircase":
+                    element_data = {
+                        "type": "staircase",
+                        "floor_id": self.selected_floor.db_id,
+                        "position": position,
+                    }
+                else:
+                    raise ValueError("Invalid element type")
                 self.controller.add_element(element_data)
+                self.selected_floor = self.controller.get_floor(self.selected_floor.db_id)
                 floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
                 connections = self.controller.get_floor_connections(self.selected_floor.name)
                 self.grid_canvas.set_floor_elements(floor_grid, connections)
@@ -356,32 +370,33 @@ class HotelConfiguratorWindow(QMainWindow):
         element = self.selected_floor.elements.get(element_id)
 
         if not element:
-            QMessageBox.critical(
-                self,
-                "Error",
-                "Failed to find the corresponding FloorElement."
-            )
+            QMessageBox.critical(self, "Error", "Failed to find the corresponding FloorElement.")
             return
 
         element_type = element.type.capitalize()
 
-        reply = QMessageBox.question(
-            self,
-            f"Delete {element_type}",
-            f"Are you sure you want to delete this {element_type.lower()}?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
+        if element.type == "room":
+            num_reservations = self.controller.get_room_number_of_reservations(element.db_id)
+            if num_reservations > 0:
+                reply = QMessageBox.question(
+                    self,
+                    "Delete Room",
+                    f"This room has {num_reservations} reservation(s). Deleting it will remove all reservations. Continue?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No
+                )
+                if reply != QMessageBox.StandardButton.Yes:
+                    return
 
-        if reply == QMessageBox.StandardButton.Yes:
-            try:
-                self.controller.remove_element(element)
-                floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
-                connections = self.controller.get_floor_connections(self.selected_floor.name)
-                self.grid_canvas.set_floor_elements(floor_grid, connections)
-                self.grid_canvas.select_element(None)
-                self.grid_canvas.update()
-                QMessageBox.information(self, "Success", f"{element_type} successfully deleted!")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to delete {element_type.lower()}: {str(e)}")
+        try:
+            self.controller.remove_element(element)
+            floor_grid = self.controller.get_floor_grid(self.selected_floor.name)
+            connections = self.controller.get_floor_connections(self.selected_floor.name)
+            self.grid_canvas.set_floor_elements(floor_grid, connections)
+            self.grid_canvas.select_element(None)
+            self.grid_canvas.update()
+            if element.type == "room":
+                QMessageBox.information(self, "Success", f"Room successfully deleted!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to delete {element_type.lower()}: {str(e)}")
 
