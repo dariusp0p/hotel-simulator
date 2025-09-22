@@ -1,81 +1,90 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 )
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
+from PyQt6.QtCore import Qt
 
 from src.ui.components.top_bar import TopBar
+from src.ui.simulator.components.top_left_panel import TopLeftPanel
+from src.ui.simulator.components.bottom_left_panel import BottomLeftPanel
+from src.ui.simulator.components.hot_bar import HotBar
+from src.ui.simulator.components.simulator_canvas import SimulatorCanvas
+
 
 class SimulatorWindow(QMainWindow):
-    def __init__(self, on_back=None, controller=None):
+    def __init__(self, on_back, controller):
         super().__init__()
         self.on_back = on_back
         self.controller = controller
 
-        self.setWindowTitle("Hotel 3D Graph Simulator")
+        self.setup_ui()
+
+    def setup_ui(self):
+        self.setWindowTitle("Hotel Simulator")
         self.resize(1200, 800)
 
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
-        self.layout = QVBoxLayout(self.main_widget)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
+
+        self.simulator_canvas = SimulatorCanvas(self.controller)
 
         self.top_bar = TopBar([
             {"label": "← Back", "callback": self.handle_back},
-            {"label": "↩ Undo", "callback": self.undo_action},
-            {"label": "↪ Redo", "callback": self.redo_action},
         ])
-        self.layout.addWidget(self.top_bar)
 
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.layout.addWidget(self.canvas)
+        self.top_left_panel = TopLeftPanel()
+        self.bottom_left_panel = BottomLeftPanel(self.controller)
+        self.hot_bar = HotBar()
 
-        self.plot_3d_hotel()
+        self.layout = QVBoxLayout(self.main_widget)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+        self.layout.addWidget(self.simulator_canvas)
 
-    def plot_3d_hotel(self):
-        self.figure.clear()
-        ax = self.figure.add_subplot(111, projection='3d')
+        self.top_bar.setParent(self.main_widget)
+        self.top_left_panel.setParent(self.main_widget)
+        self.bottom_left_panel.setParent(self.main_widget)
+        self.hot_bar.setParent(self.main_widget)
 
-        # Collect all elements and their positions
-        floors = self.controller.get_all_floors()
-        pos = {}
-        for floor in floors:
-            z = floor.level
-            elements = self.controller.get_floor_elements(floor.db_id)
-            for el in elements:
-                x, y = el.position
-                pos[el.db_id] = (x, y, z)
-
-        # Fetch all connections in the hotel (including inter-floor)
-        all_connections = self.controller.get_all_connections()
-
-        # Draw nodes
-        for el_id, (x, y, z) in pos.items():
-            ax.scatter(x, y, z, s=100, c="blue")
-            ax.text(x, y, z, str(el_id), color="black")
-
-        # Draw edges (including inter-floor)
-        for u, v in all_connections:
-            if u in pos and v in pos:
-                x = [pos[u][0], pos[v][0]]
-                y = [pos[u][1], pos[v][1]]
-                z = [pos[u][2], pos[v][2]]
-                ax.plot(x, y, z, c="gray")
-
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Floor (Z)")
-        ax.set_title("Hotel 3D Graph")
-        self.canvas.draw()
+        self.resizeEvent(None)
 
     def handle_back(self):
         if self.on_back:
             self.on_back()
 
-    def undo_action(self):
-        pass
+    def resizeEvent(self, event):
+        margin = 10
 
-    def redo_action(self):
-        pass
+        # Position top bar
+        self.top_bar.setGeometry(
+            margin,
+            margin,
+            self.width() - 2 * margin,
+            self.top_bar.height()
+        )
+
+        top_margin = self.top_bar.height() + 2 * margin
+        panel_width = 250
+
+        # Position top left panel
+        self.top_left_panel.setGeometry(
+            margin,
+            top_margin,
+            panel_width,
+            (self.height() - top_margin - margin) // 2
+        )
+
+        # Position bottom left panel
+        self.bottom_left_panel.setGeometry(
+            margin,
+            top_margin + (self.height() - top_margin - margin) // 2 + margin,
+            panel_width,
+            (self.height() - top_margin - margin) // 2 - margin
+        )
+
+        # Position hot bar
+        self.hot_bar.setGeometry(
+            panel_width + 2 * margin,
+            self.height() - self.hot_bar.height() - margin,
+            self.width() - panel_width - 3 * margin,
+            self.hot_bar.height()
+        )
