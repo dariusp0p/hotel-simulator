@@ -9,7 +9,7 @@ from src.ui.simulator.components.top_left_panel import TopLeftPanel
 from src.ui.simulator.components.bottom_left_panel import BottomLeftPanel
 from src.ui.simulator.components.hot_bar import HotBar
 from src.ui.simulator.components.simulator_canvas import SimulatorCanvas
-
+from src.utilities.reservation_generator import ReservationGenerator
 
 
 class SimulatorWindow(QMainWindow):
@@ -17,6 +17,7 @@ class SimulatorWindow(QMainWindow):
         super().__init__()
         self.on_back = on_back
         self.controller = controller
+        self.reservation_generator = ReservationGenerator(controller)
 
         self.current_date = datetime.now().date()
         self.speed = 1.0
@@ -39,7 +40,7 @@ class SimulatorWindow(QMainWindow):
             {"label": "← Back", "callback": self.handle_back},
         ])
 
-        self.top_left_panel = TopLeftPanel()
+        self.top_left_panel = TopLeftPanel(controller=self.controller, generate_reservations_callback=self.generate_reservations)
         self.bottom_left_panel = BottomLeftPanel(self.controller)
         self.hot_bar = HotBar()
 
@@ -62,6 +63,8 @@ class SimulatorWindow(QMainWindow):
         self.top_left_panel.setParent(self.main_widget)
         self.bottom_left_panel.setParent(self.main_widget)
         self.hot_bar.setParent(self.main_widget)
+
+        self.simulator_canvas.repaint_completed = self.top_left_panel.update_stats
 
         self.resizeEvent(None)
 
@@ -116,6 +119,13 @@ class SimulatorWindow(QMainWindow):
         if self.current_date:
             self.simulator_canvas.update_room_availability(self.current_date)
             self.simulator_canvas.update()
+            # Update stats when room availability changes
+            self.top_left_panel.update_stats()
+
+    def generate_reservations(self, from_date, to_date, occupancy_percentage):
+        created_count = self.reservation_generator.generate_reservations(from_date, to_date, occupancy_percentage)
+        self.update_room_availability()
+        return created_count
 
     def resizeEvent(self, event):
         margin = 10
@@ -130,18 +140,24 @@ class SimulatorWindow(QMainWindow):
         top_margin = self.top_bar.height() + 2 * margin
         panel_width = 250
 
+        # Make top_left_panel larger
+        top_panel_height = int((self.height() - top_margin - margin) * 0.55)  # 55% of available height
+
         self.top_left_panel.setGeometry(
             margin,
             top_margin,
             panel_width,
-            (self.height() - top_margin - margin) // 2
+            top_panel_height
         )
+
+        # Make bottom_left_panel smaller
+        bottom_panel_height = int((self.height() - top_margin - margin) * 0.45 - margin)  # 45% of available height
 
         self.bottom_left_panel.setGeometry(
             margin,
-            top_margin + (self.height() - top_margin - margin) // 2 + margin,
+            top_margin + top_panel_height + margin,
             panel_width,
-            (self.height() - top_margin - margin) // 2 - margin
+            bottom_panel_height
         )
 
         self.hot_bar.setGeometry(

@@ -134,6 +134,34 @@ class Controller:
                     available_rooms.add(room_id)
         return available_rooms, unavailable_rooms
 
+    def get_total_rooms_count(self):
+        """Returns the total number of rooms in the hotel."""
+        rooms_count = 0
+        floors = self.get_all_floors()
+
+        for floor in floors:
+            floor_grid = self.get_floor_grid(floor.db_id)
+            for element in floor_grid.values():
+                if element and element.type == "room":
+                    rooms_count += 1
+
+        return rooms_count
+
+    def get_total_reservations_income(self):
+        """Calculates the total income from all reservations."""
+        total_income = 0
+        reservations = self.get_all_reservations()
+
+        for res in reservations:
+            room = self.get_room_by_id(res.room_id)
+            if room:
+                check_in = res.check_in_date
+                check_out = res.check_out_date
+                days = (check_out - check_in).days
+                total_income += days * room.price_per_night
+
+        return total_income
+
     # ---- CRUD ----
 
     # Reservations
