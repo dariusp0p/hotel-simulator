@@ -47,25 +47,37 @@ class BottomLeftPanel(QWidget):
         self.figure.clear()
         ax = self.figure.add_subplot(111, projection='3d')
 
-        # Collect all elements and their positions
         floors = self.controller.get_all_floors()
         pos = {}
+        elements = {}
+
         for floor in floors:
             z = floor.level
-            elements = self.controller.get_floor_elements(floor.db_id)
-            for el in elements:
-                x, y = el.position
-                pos[el.db_id] = (x, y, z)
+            floor_grid = self.controller.get_floor_grid(floor.db_id)
 
-        # Fetch all connections in the hotel
+            for position, element in floor_grid.items():
+                if element and position:
+                    x, y = position
+                    pos[element.db_id] = (x, y, z)
+                    elements[element.db_id] = element
+
         all_connections = self.controller.get_all_connections()
 
-        # Draw nodes
         for el_id, (x, y, z) in pos.items():
-            ax.scatter(x, y, z, s=100, c="blue")
-            ax.text(x, y, z, str(el_id), color="black")
+            element = elements.get(el_id)
 
-        # Draw edges
+            if not element:
+                continue
+
+            if element.type == "room":
+                ax.scatter(x, y, z, s=120, c="blue")
+                room_number = getattr(element, 'number', '?')
+                ax.text(x, y, z, f"{room_number}", color="black")  # Higher zorder ensures text is on top
+            elif element.type == "hallway":
+                ax.scatter(x, y, z, s=20, c="darkgray")
+            elif element.type == "staircase":
+                ax.scatter(x, y, z, s=40, c="yellow")
+
         for u, v in all_connections:
             if u in pos and v in pos:
                 x = [pos[u][0], pos[v][0]]
@@ -73,7 +85,14 @@ class BottomLeftPanel(QWidget):
                 z = [pos[u][2], pos[v][2]]
                 ax.plot(x, y, z, c="gray")
 
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Floor (Z)")
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_zticklabels([])
+
+        ax.grid(False)
+
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+        ax.set_zlabel("Level")
+
         self.canvas.draw()
