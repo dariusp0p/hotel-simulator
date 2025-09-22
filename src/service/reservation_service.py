@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from random import randint
 
 from src.repository.reservation_repository import ReservationRepository
@@ -69,57 +69,61 @@ class ReservationService:
         return results
 
 
+    # ---- CRUD Operations ----
 
-    # CRUD
-    def make_reservation(self, reservation_data: dict) -> None:
+    def make_reservation(self, reservation_id=None, room_id=None, guest_name=None, number_of_guests=None,
+                         check_in_date=None, check_out_date=None) -> str | None:
+        if not reservation_id:
+            reservation_id = self._generate_reservation_id(room_id, check_in_date, check_out_date)
         reservation = Reservation(
-            reservation_id=self.generate_reservation_id(reservation_data),
-            room_id=reservation_data['room_id'],
-            guest_name=reservation_data['guest_name'],
-            number_of_guests=reservation_data['number_of_guests'],
-            check_in_date=datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").date(),
-            check_out_date=datetime.strptime(reservation_data['check_out_date'], "%Y-%m-%d").date(),
+            reservation_id=reservation_id,
+            room_id=room_id, guest_name=guest_name, number_of_guests=number_of_guests,
+            check_in_date=self._parse_iso_date(check_in_date),
+            check_out_date=self._parse_iso_date(check_out_date)
         )
 
         errors = reservation.validate()
         if errors:
             raise ValidationError('Invalid Reservation!', errors)
 
-        try:
-            self.__repository.add_reservation(reservation)
-        except Exception as e:
-            raise e
+        self.__repository.add_reservation(reservation)
+        return reservation_id
 
-    def update_reservation(self, reservation_data: dict) -> None:
+    def update_reservation(self, reservation_id, room_id, guest_name, number_of_guests,
+                           check_in_date, check_out_date) -> None:
         reservation = Reservation(
-            reservation_id=reservation_data['reservation_id'],
-            room_id=reservation_data['room_id'],
-            guest_name=reservation_data['guest_name'],
-            number_of_guests=reservation_data['number_of_guests'],
-            check_in_date=datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").date(),
-            check_out_date=datetime.strptime(reservation_data['check_out_date'], "%Y-%m-%d").date(),
+            reservation_id=reservation_id,
+            room_id=room_id, guest_name=guest_name, number_of_guests=number_of_guests,
+            check_in_date=self._parse_iso_date(check_in_date),
+            check_out_date=self._parse_iso_date(check_out_date),
         )
 
-        try:
-            self.__repository.update_reservation(reservation)
-        except Exception as e:
-            raise e
+        errors = reservation.validate()
+        if errors:
+            raise ValidationError('Invalid Reservation!', errors)
+
+        self.__repository.update_reservation(reservation)
 
     def delete_reservation(self, reservation_id: str) -> None:
-        try:
-            return self.__repository.delete_reservation(reservation_id)
-        except Exception as e:
-            raise e
+        self.__repository.delete_reservation(reservation_id)
 
 
-    # Utilities
-    def generate_reservation_id(self, reservation_data):
-        room_id = str(reservation_data['room_id']).zfill(3)
-        year = str(datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").year)[-2:]
-        month = datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").strftime("%m")
-        check_in_day = datetime.strptime(reservation_data['check_in_date'], "%Y-%m-%d").strftime("%d")
-        check_out_day = datetime.strptime(reservation_data['check_out_date'], "%Y-%m-%d").strftime("%d")
+    # ---- Utilities ----
+
+    def _generate_reservation_id(self, room_id, check_in_date, check_out_date):
+        room_id = str(room_id).zfill(3)
+        year = str(datetime.strptime(check_in_date, "%Y-%m-%d").year)[-2:]
+        month = datetime.strptime(check_in_date, "%Y-%m-%d").strftime("%m")
+        check_in_day = datetime.strptime(check_in_date, "%Y-%m-%d").strftime("%d")
+        check_out_day = datetime.strptime(check_out_date, "%Y-%m-%d").strftime("%d")
         code = str(randint(0, 9)) + str(randint(0, 9)) + str(randint(0, 9))
 
         reservation_id = "R" + room_id + year + month + check_in_day + check_out_day + code
         return reservation_id
+
+    def _parse_iso_date(self, s: str) -> date:
+        try:
+            return datetime.strptime(s, "%Y-%m-%d").date()
+        except ValueError as e:
+            raise ValueError(f"Invalid date format, expected YYYY-MM-DD: {s}") from e
+

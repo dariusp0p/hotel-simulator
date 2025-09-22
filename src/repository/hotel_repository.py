@@ -84,11 +84,11 @@ class HotelRepository:
             raise FloorNotFoundError(f"Floor {floor_id} not found!")
         return self.__floors_by_id[floor_id]
 
-    def get_floor_grid(self, floor_name: str) -> dict:
+    def get_floor_grid(self, floor_id: int) -> dict:
         """Returns a dictionary representing the grid of the specified floor. Theta(1) complexity."""
-        if floor_name not in self.__floors_by_name:
-            raise FloorNotFoundError(f"Floor {floor_name} not found!")
-        return self.__floors_by_name[floor_name].grid
+        if floor_id not in self.__floors_by_id:
+            raise FloorNotFoundError(f"Floor {floor_id} not found!")
+        return self.__floors_by_id[floor_id].grid
 
     def get_floor_id(self, floor_name: str) -> int:
         """Returns the ID of the specified floor. Theta(1) complexity."""
@@ -147,6 +147,7 @@ class HotelRepository:
             self.__floors_by_id[floor.db_id] = floor
             self.__floors_by_name[floor.name] = floor
             self.refresh_staircases()
+            return db_id
         except sqlite3.IntegrityError:
             raise DatabaseError(f"Database integrity error when adding floor {floor.name}!")
         except sqlite3.OperationalError:
@@ -233,6 +234,8 @@ class HotelRepository:
                     self.__rooms_by_capacity[element.capacity] = []
                 self.__rooms_by_capacity[element.capacity].append(element)
 
+            return db_id
+
         except sqlite3.IntegrityError:
             raise DatabaseError(f"Element with id {element.db_id} already exists!")
         except sqlite3.OperationalError:
@@ -269,25 +272,26 @@ class HotelRepository:
         except ElementNotFoundError as e:
             raise e
 
-    def remove_element(self, element):
+    def remove_element(self, element_id, element_type, floor_id):
         """Removes the specified element from the repository and the database. O(RC) complexity."""
         try:
-            self.delete_all_connections(element.db_id)
-            self.__graph.remove_node(element.db_id)
-            db.delete_element(self.__connection, element.db_id)
+            self.delete_all_connections(element_id)
+            self.__graph.remove_node(element_id)
+            db.delete_element(self.__connection, element_id)
 
-            if element.type == "room" and element.db_id in self.__rooms_by_id:
-                del self.__rooms_by_id[element.db_id]
+            if element_type == "room" and element_id in self.__rooms_by_id:
+                element = self.__rooms_by_id[element_id]
+                del self.__rooms_by_id[element_id]
                 if element.capacity in self.__rooms_by_capacity:
                     self.__rooms_by_capacity[element.capacity] = [
                         room for room in self.__rooms_by_capacity[element.capacity]
-                        if room.db_id != element.db_id
+                        if room.db_id != element_id
                     ]
                     if not self.__rooms_by_capacity[element.capacity]:
                         del self.__rooms_by_capacity[element.capacity]
 
-            floor = self.__floors_by_id[element.floor_id]
-            floor.delete_element(element.db_id)
+            floor = self.__floors_by_id[floor_id]
+            floor.delete_element(element_id)
         except sqlite3.OperationalError:
             raise DatabaseError("Database is unavailable or corrupted!")
         except ElementNotFoundError as e:

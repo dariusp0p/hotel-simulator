@@ -208,7 +208,6 @@ class SideBar(QWidget):
 
     def populate_floor_list(self):
         self.floor_list.clear()
-
         floors = self.controller.get_all_floors()
         for floor in floors:
             item = QListWidgetItem(floor.name)

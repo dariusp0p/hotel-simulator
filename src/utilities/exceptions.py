@@ -38,6 +38,9 @@ class ServiceError(ApplicationException):
 class ActionError(ApplicationException):
     pass
 
+class ControllerError(ApplicationException):
+    pass
+
 class InputError(ApplicationException):
     pass
 

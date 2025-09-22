@@ -25,18 +25,17 @@ class HotelService:
         """Returns the ID of the floor with the given name."""
         return self.__repository.get_floor_id(floor_name)
 
-    def get_floor_grid(self, floor_name) -> dict:
-        """Returns the grid representation of the floor with the given name."""
-        return self.__repository.get_floor_grid(floor_name)
+    def get_floor_grid(self, floor_id) -> dict:
+        """Returns the grid representation of the floor with the given id."""
+        return self.__repository.get_floor_grid(floor_id)
 
     def get_elements_by_floor_id(self, floor_id) -> list[FloorElement]:
         """Returns all elements on the floor with the given ID."""
         elements_dict = self.__repository.get_elements_by_floor_id(floor_id)
         return list(elements_dict.values())
 
-    def get_floor_connections(self, floor_name):
-        """Returns all connections on the floor with the given name."""
-        floor_id = self.get_floor_id(floor_name)
+    def get_floor_connections(self, floor_id):
+        """Returns all connections on the floor with the given id."""
         return self.__repository.get_connections_by_floor_id(floor_id)
 
     def get_all_connections(self):
@@ -57,7 +56,7 @@ class HotelService:
     # Floors
     def add_floor(self, floor_name, level):
         """Adds a new floor with the given name and level."""
-        self.__repository.add_floor(Floor(name=floor_name, level=level))
+        return self.__repository.add_floor(Floor(name=floor_name, level=level))
 
     def rename_floor(self, old_name, new_name):
         """Renames the floor with the given old name to the new name."""
@@ -73,28 +72,24 @@ class HotelService:
 
 
     # Elements
-    def add_element(self, element_data):
-        if element_data["type"] == "room":
+    def add_element(self, element_type, floor_id, position, number=None, capacity=None, price_per_night=None) -> int:
+        if element_type == "room":
             element = Room(
-                type=element_data["type"], floor_id=element_data["floor_id"],
-                position=element_data["position"], number=element_data["number"],
-                capacity=element_data["capacity"], price_per_night=element_data["price_per_night"],
+                type=element_type, floor_id=floor_id,
+                position=position, number=number,
+                capacity=capacity, price_per_night=price_per_night
             )
         else:
             element = FloorElement(
-                type=element_data["type"],
-                floor_id=element_data["floor_id"],
-                position=element_data["position"],
+                type=element_type, floor_id=floor_id,
+                position=position
             )
 
         errors = element.validate()
         if errors:
             raise ValidationError("Invalid Floor Element!", errors)
 
-        try:
-            self.__repository.add_element(element)
-        except Exception as e:
-            raise e
+        return self.__repository.add_element(element)
 
 
     def move_element(self, element_id, new_position):
@@ -103,5 +98,5 @@ class HotelService:
     def edit_room(self, element_id, new_number, new_capacity, new_price_per_night):
         self.__repository.edit_room(element_id, new_number, new_capacity, new_price_per_night)
 
-    def remove_element(self, element):
-        self.__repository.remove_element(element)
+    def remove_element(self, element_id, element_type, floor_id):
+        self.__repository.remove_element(element_id, element_type, floor_id)

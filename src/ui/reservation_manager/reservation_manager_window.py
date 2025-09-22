@@ -8,6 +8,8 @@ from src.ui.components.top_bar import TopBar
 from src.ui.reservation_manager.components.left_panel import ReservationLeftPanel
 from src.ui.reservation_manager.components.right_panel import ReservationRightPanel
 
+from src.service.dto import MakeReservationRequest, EditReservationRequest, DeleteReservationRequest
+
 
 
 class ReservationManagerWindow(QMainWindow):
@@ -36,6 +38,7 @@ class ReservationManagerWindow(QMainWindow):
             {"label": "↩ Undo", "callback": self.undo_action},
             {"label": "↪ Redo", "callback": self.redo_action},
         ])
+        self.update_undo_redo_buttons()
 
         self.left_panel = ReservationLeftPanel(
             controller=self.controller,
@@ -75,10 +78,23 @@ class ReservationManagerWindow(QMainWindow):
             self.on_back()
 
     def undo_action(self):
-        pass
+        if self.controller.can_undo():
+            self.controller.undo()
+            self.right_panel.reset_all_filters()
+            self.right_panel.populate_reservations_list(self.controller.get_all_reservations())
+        self.update_undo_redo_buttons()
 
     def redo_action(self):
         pass
+        if self.controller.can_redo():
+            self.controller.redo()
+            self.right_panel.reset_all_filters()
+            self.right_panel.populate_reservations_list(self.controller.get_all_reservations())
+        self.update_undo_redo_buttons()
+
+    def update_undo_redo_buttons(self):
+        self.top_bar.set_button_enabled("↩ Undo", self.controller.can_undo())
+        self.top_bar.set_button_enabled("↪ Redo", self.controller.can_redo())
 
     # CRUD
     def make_reservation_click(self):
@@ -99,13 +115,16 @@ class ReservationManagerWindow(QMainWindow):
         selected_room_id = selected_room[0].data(Qt.ItemDataRole.UserRole).db_id
 
         try:
-            self.controller.make_reservation(
+            req = MakeReservationRequest(
                 room_id=selected_room_id,
                 guest_name=guest_name,
-                guest_number=self.left_panel.guest_spin.value(),
-                arrival_date=self.left_panel.check_in_date.toString("yyyy-MM-dd"),
-                departure_date=self.left_panel.check_out_date.toString("yyyy-MM-dd")
+                number_of_guests=self.left_panel.guest_spin.value(),
+                check_in_date=self.left_panel.check_in_date.toString("yyyy-MM-dd"),
+                check_out_date=self.left_panel.check_out_date.toString("yyyy-MM-dd")
             )
+            self.controller.make_reservation(req)
+            self.update_undo_redo_buttons()
+
             self.right_panel.reset_filters()
             self.right_panel.populate_reservations_list(self.controller.get_all_reservations())
             QMessageBox.information(self, "Success", "Reservation created successfully!")
@@ -160,14 +179,17 @@ class ReservationManagerWindow(QMainWindow):
 
             try:
                 room_id = self.controller.get_room_by_number(room_input.text().strip()).db_id
-                self.controller.update_reservation(
-                    reservation.reservation_id,
-                    room_id,
-                    guest_name_input.text().strip(),
-                    guest_count_input.value(),
-                    check_in_input.text().strip(),
-                    check_out_input.text().strip()
+                req = EditReservationRequest(
+                    reservation_id=reservation.reservation_id,
+                    room_id=room_id,
+                    guest_name=guest_name_input.text().strip(),
+                    number_of_guests=guest_count_input.value(),
+                    check_in_date=check_in_input.text().strip(),
+                    check_out_date=check_out_input.text().strip()
                 )
+                self.controller.edit_reservation(req)
+                self.update_undo_redo_buttons()
+
                 self.right_panel.reset_all_filters()
                 self.right_panel.populate_reservations_list(self.controller.get_all_reservations())
                 QMessageBox.information(self, "Success", "Reservation updated successfully!")
@@ -187,19 +209,20 @@ class ReservationManagerWindow(QMainWindow):
 
     def delete_reservation_click(self):
         selected_item = self.right_panel.reservation_list.currentItem()
-
-        reservation_id = selected_item.text().split(" | ")[0].strip()
+        reservation = selected_item.data(Qt.ItemDataRole.UserRole)
 
         reply = QMessageBox.question(
             self,
             "Confirm Deletion",
-            f"Are you sure you want to delete reservation {reservation_id}?",
+            f"Are you sure you want to delete reservation {reservation.reservation_id}?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
         if reply == QMessageBox.StandardButton.Yes:
             try:
-                self.controller.delete_reservation(reservation_id)
+                req = DeleteReservationRequest(reservation_id=reservation.reservation_id)
+                self.controller.delete_reservation(req)
+                self.update_undo_redo_buttons()
                 self.right_panel.reset_all_filters()
                 self.right_panel.populate_reservations_list(self.controller.get_all_reservations())
                 QMessageBox.information(self, "Success", "Reservation deleted successfully!")

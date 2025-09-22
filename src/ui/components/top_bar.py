@@ -40,7 +40,13 @@ class TopBar(QWidget):
                 button.setStyleSheet(
                     "QPushButton {background-color: #333; color: white; border: none; font-weight: bold; padding: 8px;} "
                     "QPushButton:hover {background-color: #555;}"
+                    "QPushButton:disabled {background-color: #888; color: #ccc;}"
                 )
                 button.setCursor(Qt.CursorShape.PointingHandCursor)
                 button.clicked.connect(config['callback'])
                 layout.addWidget(button)
+
+    def set_button_enabled(self, button: str, enabled: bool):
+        for b in self.findChildren(QPushButton):
+            if b.text() == button:
+                b.setEnabled(enabled)

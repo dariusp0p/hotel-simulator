@@ -109,8 +109,8 @@ class ReservationRepository:
             new_db_row = db.select_reservation_by_reservation_id(self.__connection, reservation.reservation_id)
             reservation.db_id = new_db_row[0]
             self.add_to_cache(reservation)
-        except sqlite3.IntegrityError:
-            raise ReservationAlreadyExistsError(f"Reservation with id {reservation.reservation_id} already exists.")
+        except sqlite3.IntegrityError as e:
+            raise ReservationAlreadyExistsError(f"Reservation with id {reservation.reservation_id} already exists.", e)
         except sqlite3.OperationalError:
             raise DatabaseUnavailableError("Database is unavailable or corrupted.")
         except Exception:
