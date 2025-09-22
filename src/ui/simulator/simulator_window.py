@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
+    QMainWindow, QWidget, QVBoxLayout
 )
 from PyQt6.QtCore import Qt, QTimer
 from datetime import datetime
@@ -11,13 +11,13 @@ from src.ui.simulator.components.hot_bar import HotBar
 from src.ui.simulator.components.simulator_canvas import SimulatorCanvas
 
 
+
 class SimulatorWindow(QMainWindow):
     def __init__(self, on_back, controller):
         super().__init__()
         self.on_back = on_back
         self.controller = controller
 
-        # Simulation variables
         self.current_date = datetime.now().date()
         self.speed = 1.0
         self.simulation_running = False
@@ -43,7 +43,6 @@ class SimulatorWindow(QMainWindow):
         self.bottom_left_panel = BottomLeftPanel(self.controller)
         self.hot_bar = HotBar()
 
-        # Connect HotBar signals to handlers
         self.hot_bar.date_changed.connect(self.handle_date_changed)
         self.hot_bar.speed_changed.connect(self.handle_speed_changed)
         self.hot_bar.day_back_btn.clicked.connect(self.handle_day_back)
@@ -51,7 +50,6 @@ class SimulatorWindow(QMainWindow):
         self.hot_bar.start_btn.clicked.connect(self.handle_start)
         self.hot_bar.stop_btn.clicked.connect(self.handle_stop)
 
-        # Initialize current date
         self.current_date = self.hot_bar.current_date
         self.update_room_availability()
 
@@ -74,11 +72,9 @@ class SimulatorWindow(QMainWindow):
     def handle_date_changed(self, date):
         self.current_date = date
         self.update_room_availability()
-        print(f"Date changed to: {date.toString('yyyy-MM-dd')}")
 
     def handle_speed_changed(self, speed):
         self.speed = speed
-        print(f"Speed changed to: {speed}x")
         if self.simulation_running:
             self.adjust_timer_interval()
 
@@ -88,7 +84,6 @@ class SimulatorWindow(QMainWindow):
             self.hot_bar.current_date = self.current_date
             self.hot_bar.date_btn.setText(f"Current Date: {self.current_date.toString('yyyy-MM-dd')}")
             self.update_room_availability()
-            print(f"Date moved back to: {self.current_date.toString('yyyy-MM-dd')}")
 
     def handle_day_forward(self):
         if self.current_date:
@@ -96,7 +91,6 @@ class SimulatorWindow(QMainWindow):
             self.hot_bar.current_date = self.current_date
             self.hot_bar.date_btn.setText(f"Current Date: {self.current_date.toString('yyyy-MM-dd')}")
             self.update_room_availability()
-            print(f"Date moved forward to: {self.current_date.toString('yyyy-MM-dd')}")
 
     def handle_start(self):
         self.simulation_running = True
@@ -104,24 +98,18 @@ class SimulatorWindow(QMainWindow):
         self.hot_bar.stop_btn.setEnabled(True)
         self.adjust_timer_interval()
         self.timer.start()
-        print(f"Starting simulation at {self.speed}x speed")
 
     def handle_stop(self):
         self.simulation_running = False
         self.hot_bar.start_btn.setEnabled(True)
         self.hot_bar.stop_btn.setEnabled(False)
         self.timer.stop()
-        print("Stopping simulation")
 
     def adjust_timer_interval(self):
-        # Base interval is 1000ms (1 second)
-        # Adjust based on speed factor
         interval = int(1000 / self.speed)
-        self.timer.setInterval(max(50, interval))  # Minimum 50ms for UI responsiveness
+        self.timer.setInterval(max(50, interval))
 
     def simulation_step(self):
-        # This will be called according to the timer interval
-        # Advance the simulation by one time step
         self.handle_day_forward()
 
     def update_room_availability(self):
@@ -132,7 +120,6 @@ class SimulatorWindow(QMainWindow):
     def resizeEvent(self, event):
         margin = 10
 
-        # Position top bar
         self.top_bar.setGeometry(
             margin,
             margin,
@@ -143,7 +130,6 @@ class SimulatorWindow(QMainWindow):
         top_margin = self.top_bar.height() + 2 * margin
         panel_width = 250
 
-        # Position top left panel
         self.top_left_panel.setGeometry(
             margin,
             top_margin,
@@ -151,7 +137,6 @@ class SimulatorWindow(QMainWindow):
             (self.height() - top_margin - margin) // 2
         )
 
-        # Position bottom left panel
         self.bottom_left_panel.setGeometry(
             margin,
             top_margin + (self.height() - top_margin - margin) // 2 + margin,
@@ -159,7 +144,6 @@ class SimulatorWindow(QMainWindow):
             (self.height() - top_margin - margin) // 2 - margin
         )
 
-        # Position hot bar
         self.hot_bar.setGeometry(
             panel_width + 2 * margin,
             self.height() - self.hot_bar.height() - margin,

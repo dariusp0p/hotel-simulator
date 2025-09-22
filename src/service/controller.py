@@ -104,6 +104,35 @@ class Controller:
     def get_all_connections(self):
         return self.__hotel_service.get_all_connections()
 
+    def get_rooms_availability_for_date(self, date_string):
+        """Returns available and unavailable room IDs for a specific date."""
+        available_rooms = set()
+        unavailable_rooms = set()
+        date_val = self._parse_iso_date(date_string)
+
+        all_reservations = self.get_all_reservations()
+        unavailable_room_ids = set()
+
+        for res in all_reservations:
+            check_in = res.check_in_date
+            check_out = res.check_out_date
+            if check_in <= date_val < check_out:
+                unavailable_room_ids.add(res.room_id)
+
+        floors = self.get_all_floors()
+
+        for floor in floors:
+            floor_grid = self.get_floor_grid(floor.db_id)
+
+            for pos, element in floor_grid.items():
+                if not element or element.type != "room":
+                    continue
+                room_id = element.db_id
+                if room_id in unavailable_room_ids:
+                    unavailable_rooms.add(room_id)
+                else:
+                    available_rooms.add(room_id)
+        return available_rooms, unavailable_rooms
 
     # ---- CRUD ----
 
