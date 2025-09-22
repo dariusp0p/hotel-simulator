@@ -23,7 +23,7 @@ class BottomLeftPanel(QWidget):
         layout.setSpacing(10)
 
         # Title
-        title = QLabel("3D Hotel Graph")
+        title = QLabel("3D Hotel Structure")
         title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("color: white;")
@@ -76,5 +76,4 @@ class BottomLeftPanel(QWidget):
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Floor (Z)")
-        ax.set_title("Hotel 3D Structure")
         self.canvas.draw()

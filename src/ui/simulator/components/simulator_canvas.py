@@ -26,6 +26,11 @@ class SimulatorCanvas(QWidget):
         self.is_panning = False
         self.last_mouse_pos = QPoint(0, 0)
 
+        # Room availability tracking
+        self.current_date = None
+        self.available_rooms = set()
+        self.unavailable_rooms = set()
+
         # Enable mouse tracking for smoother dragging
         self.setMouseTracking(True)
 
@@ -153,6 +158,51 @@ class SimulatorCanvas(QWidget):
         # Convert view coordinates to scene coordinates
         return (point - self.offset) / self.scale_factor
 
+
+    def update_room_availability(self, date):
+        self.current_date = date
+
+        self.available_rooms = set()
+        self.unavailable_rooms = set()
+
+        # Convert QDate to Python date
+        date_val = date.toPyDate()
+
+        # Get all reservations
+        all_reservations = self.controller.get_all_reservations()
+
+        # Find rooms with reservations on the current date
+        unavailable_room_ids = set()
+
+        for res in all_reservations:
+            check_in = res.check_in_date
+            check_out = res.check_out_date
+
+            # If current date is between check-in and check-out, room is unavailable
+            if check_in <= date_val < check_out:
+                unavailable_room_ids.add(res.room_id)
+
+        # Get all floors and rooms
+        floors = self.controller.get_all_floors()
+
+        for floor in floors:
+            floor_grid = self.controller.get_floor_grid(floor.db_id)
+
+            for pos, element in floor_grid.items():
+                # Skip non-room elements
+                if not element or element.type != "room":
+                    continue
+
+                room_id = element.db_id
+
+                # Check if room is available on this date
+                if room_id in unavailable_room_ids:
+                    self.unavailable_rooms.add(room_id)
+                else:
+                    self.available_rooms.add(room_id)
+
+        print(f"Available rooms: {len(self.available_rooms)}, Unavailable rooms: {len(self.unavailable_rooms)}")
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -230,13 +280,27 @@ class SimulatorCanvas(QWidget):
                     adjusted_x = current_x + (pos[0] - min_x) * self.cell_size
                     adjusted_y = current_y + (pos[1] - min_y) * self.cell_size
 
-                    # Draw element background
+                    # Draw element background with availability coloring for rooms
                     if element.type == "room":
-                        painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size, QColor(200, 230, 255))
+                        if hasattr(self, 'current_date') and self.current_date:
+                            if element.db_id in self.available_rooms:
+                                painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size,
+                                                 QColor(150, 230, 150))  # Green for available
+                            elif element.db_id in self.unavailable_rooms:
+                                painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size,
+                                                 QColor(230, 150, 150))  # Red for unavailable
+                            else:
+                                painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size,
+                                                 QColor(200, 230, 255))  # Default blue
+                        else:
+                            painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size,
+                                             QColor(200, 230, 255))
                     elif element.type == "hallway":
-                        painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size, QColor(220, 220, 220))
+                        painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size,
+                                         QColor(220, 220, 220))
                     elif element.type == "staircase":
-                        painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size, QColor(150, 150, 150))
+                        painter.fillRect(adjusted_x, adjusted_y, self.cell_size, self.cell_size,
+                                         QColor(150, 150, 150))
 
                         # Draw staircase symbol
                         painter.setPen(QPen(QColor(80, 80, 80), 2))
