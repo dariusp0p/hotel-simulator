@@ -10,14 +10,17 @@ from src.ui.components.custom_switch import CustomSwitch
 from src.utilities.user import User
 
 
-class MainMenuPage(QWidget):
+class HomeWindow(QWidget):
     def __init__(self, on_reservation_manager_click=None, on_simulator_click=None, on_hotel_configurator_click=None):
         super().__init__()
         self.on_hotel_configurator_click = on_hotel_configurator_click
         self.on_reservation_manager_click = on_reservation_manager_click
         self.on_simulator_click = on_simulator_click
 
-        self.setStyleSheet("background-color: #bfbfbf;")
+        self.setAutoFillBackground(True)
+        palette = self.palette()
+        palette.setColor(self.backgroundRole(), QColor(245, 245, 245))  # #F5F5F5
+        self.setPalette(palette)
 
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
