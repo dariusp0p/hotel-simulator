@@ -1,8 +1,7 @@
 import sqlite3
 import networkx as nx
-from networkx.classes import neighbors
 
-from src.db import hotel_model as db
+from src.db import database_operations as db
 from src.domain.floor import Floor
 from src.domain.floor_element import FloorElement
 from src.domain.room import Room

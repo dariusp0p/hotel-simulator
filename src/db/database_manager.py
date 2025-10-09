@@ -1,22 +1,34 @@
-from src.db.db_connection import get_connection
-from src.db.reservation_model import create_reservation_model
-from src.db.hotel_model import create_hotel_model
-
+import sqlite3
+from src.db.database_operations import create_hotel_simulator_model
 
 
 class DatabaseManager:
-    def __init__(self, reservations_db, hotel_db):
-        self.__reservations_conn = get_connection(reservations_db)
-        self.__hotel_conn = get_connection(hotel_db)
+    """
+    Manages the database connection and initialization.
+    """
+    def __init__(self, db_path: str):
+        self.__conn = get_connection(db_path)
 
-    def initialize_databases(self):
-        create_reservation_model(self.__reservations_conn)
-        create_hotel_model(self.__hotel_conn)
-
-    @property
-    def reservations_conn(self):
-        return self.__reservations_conn
+    def initialize_database(self):
+        create_hotel_simulator_model(self.__conn)
 
     @property
-    def hotel_conn(self):
-        return self.__hotel_conn
+    def conn(self):
+        return self.__conn
+
+
+def get_connection(db_path: str) -> sqlite3.Connection:
+    """
+    Establishes and returns a connection to a database.
+    :param db_path:
+    :return:
+    """
+    return get_sqlite_connection(db_path)
+
+def get_sqlite_connection(db_path: str) -> sqlite3.Connection:
+    """
+    Establishes and returns a connection to the SQLite database.
+    :param db_path:
+    :return:
+    """
+    return sqlite3.connect(db_path)

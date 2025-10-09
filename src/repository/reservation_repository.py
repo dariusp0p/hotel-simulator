@@ -4,7 +4,7 @@ from webbrowser import Error
 
 from src.utilities.exceptions import (RepositoryError, ReservationAlreadyExistsError, ReservationNotFoundError, DatabaseUnavailableError)
 from src.domain.reservation import Reservation
-from src.db import reservation_model as db
+from src.db import database_operations as db
 
 
 

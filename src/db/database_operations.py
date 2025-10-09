@@ -1,8 +1,13 @@
+"""
+Database Operations for Hotel Simulator
+This module provides functions to create and manipulate the database schema for a hotel simulator application.
+"""
+
 import sqlite3
 
 
-
-def create_hotel_model(connection):
+# Create Tables
+def create_hotel_simulator_model(connection):
     cursor = connection.cursor()
     cursor.executescript("""
         CREATE TABLE IF NOT EXISTS floors (
@@ -19,12 +24,21 @@ def create_hotel_model(connection):
             y INTEGER NOT NULL,
             number TEXT,
             capacity INTEGER,
-            price_per_night INTEGER,
+            price_per_night REAL,
             FOREIGN KEY (floor_id) REFERENCES floors(id)
+        );
+            
+        CREATE TABLE IF NOT EXISTS reservations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            reservation_id TEXT UNIQUE NOT NULL, 
+            room_id INTEGER NOT NULL, 
+            guest_name TEXT NOT NULL, 
+            number_of_guests INTEGER NOT NULL, 
+            check_in_date TEXT NOT NULL, 
+            check_out_date TEXT NOT NULL
         );
     """)
     connection.commit()
-
 
 
 # Floors Table
@@ -37,7 +51,6 @@ def select_all_floors(connection):
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
         raise e
-
 
 def insert_floor(connection, name, level):
     try:
@@ -87,8 +100,7 @@ def delete_floor(connection, floor_id):
         raise e
 
 
-
-# Elements
+# Elements Table
 def select_elements_by_floor_id(connection, floor_id):
     try:
         cursor = connection.cursor()
@@ -98,7 +110,6 @@ def select_elements_by_floor_id(connection, floor_id):
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
         raise e
-
 
 def insert_element(connection, type, floor_id, x, y, number, capacity, price_per_night):
     try:
@@ -143,6 +154,64 @@ def delete_element(connection, element_id):
         cursor.execute("""
             DELETE FROM elements WHERE id = ?
         """, (element_id,))
+        connection.commit()
+    except sqlite3.OperationalError as e:
+        raise e
+
+
+# Reservations Table
+def select_all_reservations(connection):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT * from reservations
+        """)
+        return cursor.fetchall()
+    except sqlite3.OperationalError as e:
+        raise e
+
+def select_reservation_by_reservation_id(connection, reservation_id):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT * FROM reservations WHERE reservation_id = ?
+        """, (reservation_id,))
+        return cursor.fetchone()
+    except sqlite3.OperationalError as e:
+        raise e
+
+def insert_reservation(connection, reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO reservations (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)
+        """, (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date))
+        connection.commit()
+    except sqlite3.IntegrityError as e:
+        raise e
+    except sqlite3.OperationalError as e:
+        raise e
+
+def update_reservation(connection, db_id, reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            UPDATE reservations
+            SET reservation_id = ?, room_id = ?, guest_name = ?, number_of_guests = ?, check_in_date = ?, check_out_date = ?
+            WHERE id = ?
+            """, (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date, db_id))
+        connection.commit()
+    except sqlite3.IntegrityError as e:
+        raise e
+    except sqlite3.OperationalError as e:
+        raise e
+
+def delete_reservation(connection, db_id):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            DELETE FROM reservations WHERE id = ?
+        """, (db_id,))
         connection.commit()
     except sqlite3.OperationalError as e:
         raise e

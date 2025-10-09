@@ -18,18 +18,12 @@ def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(base_dir, "data", "db")
 
-    db_manager = DatabaseManager(
-        reservations_db=os.path.join(data_dir, "reservations.db"),
-        hotel_db=os.path.join(data_dir, "hotel.db"),
-    )
+    db_manager = DatabaseManager(os.path.join(data_dir, "hotel_simulator.db"))
+    db_manager.initialize_database()
+    connection = db_manager.conn
 
-    db_manager.initialize_databases()
-
-    reservations_connection = db_manager.reservations_conn
-    hotel_connection = db_manager.hotel_conn
-
-    reservation_repository = ReservationRepository(reservations_connection)
-    hotel_repository = HotelRepository(hotel_connection)
+    reservation_repository = ReservationRepository(connection)
+    hotel_repository = HotelRepository(connection)
 
     reservation_service = ReservationService(reservation_repository)
     hotel_service = HotelService(hotel_repository)
