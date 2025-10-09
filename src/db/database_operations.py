@@ -1,6 +1,6 @@
 """
 Database Operations for Hotel Simulator
-This module provides functions to create and manipulate the database schema for a hotel simulator application.
+This module provides functions to create and manipulate the database schema of the hotel simulator application.
 """
 
 import sqlite3

@@ -6,6 +6,7 @@ class DatabaseManager:
     """
     Manages the database connection and initialization.
     """
+
     def __init__(self, db_path: str):
         self.__conn = get_connection(db_path)
 
