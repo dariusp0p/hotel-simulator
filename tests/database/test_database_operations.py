@@ -1,5 +1,5 @@
 import pytest
-from src.db.database_operations import *
+from src.model.database.database_operations import *
 from src.utilities.exceptions import DatabaseError
 
 

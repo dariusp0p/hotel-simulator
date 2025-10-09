@@ -9,7 +9,7 @@ def test_database_initialization(db_manager, monkeypatch):
         nonlocal mock_create_called
         mock_create_called = True
 
-    monkeypatch.setattr("src.db.database_manager.create_hotel_simulator_model", mock_create)
+    monkeypatch.setattr("src.model.database.database_manager.create_hotel_simulator_model", mock_create)
 
     # Call initialize
     db_manager.initialize_database()

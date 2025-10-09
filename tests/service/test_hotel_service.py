@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from src.model.service.reservation_service import ReservationService
-from src.model.domain import Reservation
+from src.model.domain.reservation import Reservation
 from src.utilities.exceptions import ValidationError
 
 

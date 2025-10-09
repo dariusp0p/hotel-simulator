@@ -3,7 +3,7 @@ import sqlite3
 from datetime import date
 
 from src.model.repository.reservation_repository import ReservationRepository
-from src.model.domain import Reservation
+from src.model.domain.reservation import Reservation
 from src.utilities.exceptions import ReservationAlreadyExistsError, ReservationNotFoundError
 
 
@@ -11,7 +11,7 @@ from src.utilities.exceptions import ReservationAlreadyExistsError, ReservationN
 def in_memory_db():
     conn = sqlite3.connect(":memory:")
     # Ensure the schema and tables are created
-    from src.db.database_operations import create_hotel_simulator_model
+    from src.model.database.database_operations import create_hotel_simulator_model
     create_hotel_simulator_model(conn)
     yield conn
     conn.close()

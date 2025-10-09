@@ -189,10 +189,9 @@ class Controller:
                 total_income += days * room.price_per_night
         return total_income
 
-    # TODO
     # Search
-    def reservation_search(self, search_bar_string: str, from_date: date = None, to_date: date = None) -> list[
-        ReservationDTO]:
+    def reservation_search(self, search_bar_string: str, from_date: date = None,
+                           to_date: date = None) -> list[ReservationDTO]:
         """Search reservations by reservation ID, guest name, or room number, with optional date filtering."""
         results = []
 

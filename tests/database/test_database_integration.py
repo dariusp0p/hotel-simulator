@@ -1,4 +1,4 @@
-from src.db.database_manager import DatabaseManager
+from src.model.database.database_manager import DatabaseManager
 
 
 def test_database_integration(tmp_path):

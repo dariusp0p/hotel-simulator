@@ -1,6 +1,6 @@
 import pytest
 import sqlite3
-from src.db.database_manager import DatabaseManager
+from src.model.database.database_manager import DatabaseManager
 
 
 @pytest.fixture
@@ -17,6 +17,6 @@ def db_manager(monkeypatch):
     def mock_get_sqlite_connection(_):
         return sqlite3.connect(":memory:")
 
-    monkeypatch.setattr("src.db.database_manager.get_sqlite_connection", mock_get_sqlite_connection)
+    monkeypatch.setattr("src.model.database.database_manager.get_sqlite_connection", mock_get_sqlite_connection)
     manager = DatabaseManager("test.db")
     return manager

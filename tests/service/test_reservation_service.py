@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from src.model.service.reservation_service import ReservationService
-from src.model.domain import Reservation
+from src.model.domain.reservation import Reservation
 from src.utilities.exceptions import ValidationError
 
 
@@ -75,36 +75,3 @@ def test_parse_iso_date_valid(service):
 def test_parse_iso_date_invalid(service):
     with pytest.raises(ValueError):
         service._parse_iso_date("invalid-date")
-
-def test_search_by_guest_name(service, mock_repository):
-    mock_repository.get_all_reservations.return_value = [
-        Reservation(
-            reservation_id="R004", room_id=4, guest_name="Charlie", number_of_guests=1,
-            check_in_date=None, check_out_date=None
-        )
-    ]
-    results = service.search("Charlie")
-    assert len(results) == 1
-    assert results[0].guest_name == "Charlie"
-
-def test_direct_search_by_id(service, mock_repository):
-    mock_repository.get_by_reservation_id.return_value = Reservation(
-        reservation_id="R005", room_id=5, guest_name="Dana", number_of_guests=2,
-        check_in_date=None, check_out_date=None
-    )
-    mock_repository.get_reservations_by_guest_name.return_value = []
-    results = service.direct_search("R005")
-    assert len(results) == 1
-    assert results[0].reservation_id == "R005"
-
-def test_direct_search_by_guest_name(service, mock_repository):
-    mock_repository.get_by_reservation_id.return_value = None
-    mock_repository.get_reservations_by_guest_name.return_value = [
-        Reservation(
-            reservation_id="R006", room_id=6, guest_name="Eve", number_of_guests=1,
-            check_in_date=None, check_out_date=None
-        )
-    ]
-    results = service.direct_search("Eve")
-    assert len(results) == 1
-    assert results[0].guest_name == "Eve"

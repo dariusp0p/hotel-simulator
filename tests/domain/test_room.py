@@ -1,4 +1,4 @@
-from src.model.domain import Room
+from src.model.domain.room import Room
 
 
 def test_initialization_defaults():

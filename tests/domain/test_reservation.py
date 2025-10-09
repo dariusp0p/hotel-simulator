@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from src.model.domain import Reservation
+from src.model.domain.reservation import Reservation
 
 
 def test_initialization_defaults():

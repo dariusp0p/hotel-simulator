@@ -1,5 +1,6 @@
-from src.model.domain import Floor
+from src.model.domain.floor import Floor
 from src.model.domain.floor_element import FloorElement
+from src.model.domain.room import Room
 from src.utilities.exceptions import ElementNotFoundError
 
 
@@ -100,7 +101,6 @@ def test_delete_element_not_found():
         assert True
 
 def test_edit_room():
-    from src.model.domain import Room
     f = Floor(db_id=1, name="Main", level=0)
     r = Room(db_id=200, type="room", floor_id=1, position=(0, 0), number="101", capacity=2, price_per_night=50.0)
     f.add_element(r)

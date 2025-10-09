@@ -2,16 +2,16 @@ import pytest
 import sqlite3
 
 from src.model.repository.hotel_repository import HotelRepository
-from src.model.domain import Floor
+from src.model.domain.floor import Floor
 from src.model.domain.floor_element import FloorElement
-from src.model.domain import Room
+from src.model.domain.room import Room
 from src.utilities.exceptions import FloorAlreadyExistsError, FloorNotFoundError, ElementNotFoundError
 
 
 @pytest.fixture
 def in_memory_db():
     conn = sqlite3.connect(":memory:")
-    from src.db.database_operations import create_hotel_simulator_model
+    from src.model.database.database_operations import create_hotel_simulator_model
     create_hotel_simulator_model(conn)
     yield conn
     conn.close()
