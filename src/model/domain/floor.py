@@ -1,4 +1,4 @@
-from src.domain.floor_element import FloorElement
+from src.model.domain.floor_element import FloorElement
 from src.utilities.exceptions import ElementNotFoundError
 
 

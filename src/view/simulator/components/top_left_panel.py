@@ -3,8 +3,6 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QFrame, QGroupBox,
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QColor, QFont
 
-from src.service import controller
-
 
 class TopLeftPanel(QWidget):
     def __init__(self, parent=None, controller=None, generate_reservations_callback=None):

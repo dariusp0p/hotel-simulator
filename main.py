@@ -2,14 +2,13 @@ import sys
 import os
 from PyQt6.QtWidgets import QApplication
 
-from src.db.database_manager import DatabaseManager
-from src.repository.hotel_repository import HotelRepository
-from src.repository.reservation_repository import ReservationRepository
-from src.service.hotel_service import HotelService
-from src.service.reservation_service import ReservationService
-from src.service.controller import Controller
-from src.ui.main_window import MainWindow
-
+from src.model.database.database_manager import DatabaseManager
+from src.model.repository.hotel_repository import HotelRepository
+from src.model.repository.reservation_repository import ReservationRepository
+from src.model.service.hotel_service import HotelService
+from src.model.service.reservation_service import ReservationService
+from src.controller.controller import Controller
+from src.view.main_window import MainWindow
 
 
 def main():

@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette, QColor
 
-from src.ui.components.app_button import AppButton
-from src.ui.components.custom_switch import CustomSwitch
+from src.view.components.app_button import AppButton
+from src.view.components.custom_switch import CustomSwitch
 from src.utilities.user import User
 
 

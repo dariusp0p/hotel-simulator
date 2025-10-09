@@ -1,9 +1,9 @@
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget
 
-from src.ui.home_window import HomeWindow
-from src.ui.hotel_configurator.hotel_configurator_window import HotelConfiguratorWindow
-from src.ui.reservation_manager.reservation_manager_window import ReservationManagerWindow
-from src.ui.simulator.simulator_window import SimulatorWindow
+from src.view.home_window import HomeWindow
+from src.view.hotel_configurator.hotel_configurator_window import HotelConfiguratorWindow
+from src.view.reservation_manager.reservation_manager_window import ReservationManagerWindow
+from src.view.simulator.simulator_window import SimulatorWindow
 
 
 

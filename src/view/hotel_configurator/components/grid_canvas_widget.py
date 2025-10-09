@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal
 from PyQt6.QtGui import QPainter, QTransform, QWheelEvent, QColor, QPen
 
-from src.ui.hotel_configurator.components.floor_element_widget import FloorElementWidget
+from src.view.hotel_configurator.components.floor_element_widget import FloorElementWidget
 
 
 

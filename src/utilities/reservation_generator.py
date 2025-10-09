@@ -1,7 +1,6 @@
 import random
 from datetime import timedelta
-from PyQt6.QtCore import QDate
-from src.service.dto import ReservationDTO, MakeReservationRequest
+from src.controller.dto import MakeReservationRequest
 
 
 class ReservationGenerator:

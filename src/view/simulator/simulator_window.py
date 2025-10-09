@@ -4,11 +4,11 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer
 from datetime import datetime
 
-from src.ui.components.top_bar import TopBar
-from src.ui.simulator.components.top_left_panel import TopLeftPanel
-from src.ui.simulator.components.bottom_left_panel import BottomLeftPanel
-from src.ui.simulator.components.hot_bar import HotBar
-from src.ui.simulator.components.simulator_canvas import SimulatorCanvas
+from src.view.components.top_bar import TopBar
+from src.view.simulator.components.top_left_panel import TopLeftPanel
+from src.view.simulator.components.bottom_left_panel import BottomLeftPanel
+from src.view.simulator.components.hot_bar import HotBar
+from src.view.simulator.components.simulator_canvas import SimulatorCanvas
 from src.utilities.reservation_generator import ReservationGenerator
 
 

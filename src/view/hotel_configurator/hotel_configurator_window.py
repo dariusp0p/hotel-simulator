@@ -4,12 +4,12 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 import random
 
-from src.service.dto import AddFloorRequest, RenameFloorRequest, UpdateFloorLevelRequest, RemoveFloorRequest, \
+from src.controller.dto import AddFloorRequest, RenameFloorRequest, UpdateFloorLevelRequest, RemoveFloorRequest, \
     AddElementRequest, EditRoomRequest, MoveElementRequest, RemoveElementRequest
-from src.ui.components.top_bar import TopBar
-from src.ui.hotel_configurator.components.side_bar import SideBar
-from src.ui.hotel_configurator.components.hot_bar import HotBar
-from src.ui.hotel_configurator.components.grid_canvas_widget import GridCanvas
+from src.view.components.top_bar import TopBar
+from src.view.hotel_configurator.components.side_bar import SideBar
+from src.view.hotel_configurator.components.hot_bar import HotBar
+from src.view.hotel_configurator.components.grid_canvas_widget import GridCanvas
 
 
 

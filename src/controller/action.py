@@ -1,18 +1,16 @@
-from datetime import datetime, date
 import copy
-
+from datetime import datetime, date
 
 
 class Action:
+    """ Abstract base class for actions that can be undone and redone."""
     def redo(self):
         raise NotImplementedError
 
     def undo(self):
         raise NotImplementedError
 
-
 # ---- Reservation Actions ----
-
 class MakeReservationAction(Action):
     def __init__(self, reservation_service, request):
         self.reservation_service = reservation_service
@@ -83,9 +81,7 @@ class DeleteReservationAction(Action):
             check_in_date=self.check_in_date, check_out_date=self.check_out_date
         )
 
-
 # ---- Floor Actions ----
-
 class AddFloorAction(Action):
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
@@ -171,9 +167,7 @@ class RemoveFloorAction(Action):
                 _format_iso_date(res.check_in_date), _format_iso_date(res.check_out_date)
             )
 
-
 # ---- Floor Element Actions ----
-
 class AddElementAction(Action):
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
@@ -274,9 +268,7 @@ class RemoveElementAction(Action):
                     _format_iso_date(res.check_out_date)
                 )
 
-
 # ---- Helper Functions ----
-
 def _parse_iso_date(s : str) -> date:
     try:
         return datetime.strptime(s, "%Y-%m-%d").date()

@@ -4,11 +4,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
-from src.ui.components.top_bar import TopBar
-from src.ui.reservation_manager.components.left_panel import ReservationLeftPanel
-from src.ui.reservation_manager.components.right_panel import ReservationRightPanel
+from src.view.components.top_bar import TopBar
+from src.view.reservation_manager.components.left_panel import ReservationLeftPanel
+from src.view.reservation_manager.components.right_panel import ReservationRightPanel
 
-from src.service.dto import MakeReservationRequest, EditReservationRequest, DeleteReservationRequest
+from src.controller.dto import MakeReservationRequest, EditReservationRequest, DeleteReservationRequest
 
 
 

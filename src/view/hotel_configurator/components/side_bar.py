@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, Q
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QFont
 
-from src.ui.hotel_configurator.components.floor_list_widget import FloorListWidget
+from src.view.hotel_configurator.components.floor_list_widget import FloorListWidget
 
 
 

@@ -1,5 +1,5 @@
 import sqlite3
-from src.db.database_operations import create_hotel_simulator_model
+from src.model.database.database_operations import create_hotel_simulator_model
 
 
 class DatabaseManager:

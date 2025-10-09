@@ -4,41 +4,49 @@ This module provides functions to create and manipulate the database schema of t
 """
 
 import sqlite3
+from src.utilities.exceptions import DatabaseError
 
 
 # Create Tables
 def create_hotel_simulator_model(connection):
-    cursor = connection.cursor()
-    cursor.executescript("""
-        CREATE TABLE IF NOT EXISTS floors (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            level INTEGER NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS elements (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            element_type TEXT NOT NULL,
-            floor_id INTEGER NOT NULL,
-            x INTEGER NOT NULL,
-            y INTEGER NOT NULL,
-            number TEXT,
-            capacity INTEGER,
-            price_per_night REAL,
-            FOREIGN KEY (floor_id) REFERENCES floors(id)
-        );
-            
-        CREATE TABLE IF NOT EXISTS reservations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            reservation_id TEXT UNIQUE NOT NULL, 
-            room_id INTEGER NOT NULL, 
-            guest_name TEXT NOT NULL, 
-            number_of_guests INTEGER NOT NULL, 
-            check_in_date TEXT NOT NULL, 
-            check_out_date TEXT NOT NULL
-        );
-    """)
-    connection.commit()
+    try:
+        cursor = connection.cursor()
+        cursor.executescript("""
+            CREATE TABLE IF NOT EXISTS floors (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                level INTEGER NOT NULL
+            );
+    
+            CREATE TABLE IF NOT EXISTS elements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                element_type TEXT NOT NULL,
+                floor_id INTEGER NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                number TEXT,
+                capacity INTEGER,
+                price_per_night REAL,
+                FOREIGN KEY (floor_id) REFERENCES floors(id)
+            );
+                
+            CREATE TABLE IF NOT EXISTS reservations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                reservation_id TEXT UNIQUE NOT NULL, 
+                room_id INTEGER NOT NULL, 
+                guest_name TEXT NOT NULL, 
+                number_of_guests INTEGER NOT NULL, 
+                check_in_date TEXT NOT NULL, 
+                check_out_date TEXT NOT NULL
+            );
+        """)
+        connection.commit()
+    except sqlite3.IntegrityError as e:
+        raise DatabaseError("Database integrity error!") from e
+    except sqlite3.OperationalError as e:
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 
 # Floors Table
@@ -50,7 +58,9 @@ def select_all_floors(connection):
         """)
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def insert_floor(connection, name, level):
     try:
@@ -61,9 +71,11 @@ def insert_floor(connection, name, level):
         connection.commit()
         return cursor.lastrowid
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def update_floor_name(connection, floor_id, new_name):
     try:
@@ -73,9 +85,11 @@ def update_floor_name(connection, floor_id, new_name):
         """, (new_name, floor_id))
         connection.commit()
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def update_floor_level(connection, floor_id, new_level):
     try:
@@ -85,9 +99,11 @@ def update_floor_level(connection, floor_id, new_level):
         """, (new_level, floor_id))
         connection.commit()
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def delete_floor(connection, floor_id):
     try:
@@ -97,7 +113,9 @@ def delete_floor(connection, floor_id):
         """, (floor_id,))
         connection.commit()
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 
 # Elements Table
@@ -109,7 +127,9 @@ def select_elements_by_floor_id(connection, floor_id):
         """, (floor_id,))
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def insert_element(connection, type, floor_id, x, y, number, capacity, price_per_night):
     try:
@@ -120,9 +140,11 @@ def insert_element(connection, type, floor_id, x, y, number, capacity, price_per
         connection.commit()
         return cursor.lastrowid
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def update_element_position(connection, element_id, new_x, new_y):
     try:
@@ -132,9 +154,11 @@ def update_element_position(connection, element_id, new_x, new_y):
         """, (new_x, new_y, element_id))
         connection.commit()
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def update_element(connection, element_id, new_number, new_capacity, new_price_per_night):
     try:
@@ -144,9 +168,11 @@ def update_element(connection, element_id, new_number, new_capacity, new_price_p
         """, (new_number, new_capacity, new_price_per_night, element_id))
         connection.commit()
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def delete_element(connection, element_id):
     try:
@@ -156,7 +182,9 @@ def delete_element(connection, element_id):
         """, (element_id,))
         connection.commit()
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 
 # Reservations Table
@@ -168,7 +196,9 @@ def select_all_reservations(connection):
         """)
         return cursor.fetchall()
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def select_reservation_by_reservation_id(connection, reservation_id):
     try:
@@ -178,7 +208,9 @@ def select_reservation_by_reservation_id(connection, reservation_id):
         """, (reservation_id,))
         return cursor.fetchone()
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def insert_reservation(connection, reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date):
     try:
@@ -187,24 +219,29 @@ def insert_reservation(connection, reservation_id, room_id, guest_name, number_o
             INSERT INTO reservations (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)
         """, (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date))
         connection.commit()
+        return cursor.lastrowid
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def update_reservation(connection, db_id, reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            UPDATE reservations
-            SET reservation_id = ?, room_id = ?, guest_name = ?, number_of_guests = ?, check_in_date = ?, check_out_date = ?
+            UPDATE reservations 
+            SET room_id = ?, guest_name = ?, number_of_guests = ?, check_in_date = ?, check_out_date = ?
             WHERE id = ?
-            """, (reservation_id, room_id, guest_name, number_of_guests, check_in_date, check_out_date, db_id))
+        """, (room_id, guest_name, number_of_guests, check_in_date, check_out_date, db_id))
         connection.commit()
     except sqlite3.IntegrityError as e:
-        raise e
+        raise DatabaseError("Database integrity error!") from e
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
 
 def delete_reservation(connection, db_id):
     try:
@@ -214,4 +251,6 @@ def delete_reservation(connection, db_id):
         """, (db_id,))
         connection.commit()
     except sqlite3.OperationalError as e:
-        raise e
+        raise DatabaseError("Database operational error!") from e
+    except Exception as e:
+        raise DatabaseError("Database unexpected error!") from e
