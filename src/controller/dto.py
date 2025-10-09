@@ -2,9 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 
 
-
-# ---- Backend -> Frontend DTOs ----
-
+# Model -> View DTOs
 @dataclass(frozen=True)
 class FloorDTO:
     db_id: int
@@ -40,34 +38,9 @@ class ReservationDTO:
     check_out_date: date
 
 
-# ---- Frontend -> Backend Requests ----
+# View -> Model Requests
 
-# ---- Reservation Requests ----
-
-@dataclass(frozen=True)
-class MakeReservationRequest:
-    room_id: int
-    guest_name: str
-    number_of_guests: int
-    check_in_date: str
-    check_out_date: str
-
-@dataclass(frozen=True)
-class EditReservationRequest:
-    reservation_id: str
-    room_id: int
-    guest_name: str
-    number_of_guests: int
-    check_in_date: str
-    check_out_date: str
-
-@dataclass(frozen=True)
-class DeleteReservationRequest:
-    reservation_id: str
-
-
-# ---- Floor Requests ----
-
+# Floor requests
 @dataclass(frozen=True)
 class AddFloorRequest:
     name: str
@@ -87,9 +60,7 @@ class UpdateFloorLevelRequest:
 class RemoveFloorRequest:
     floor_id: int
 
-
-# ---- Floor Element Requests ----
-
+# Floor element requests
 @dataclass(frozen=True)
 class AddElementRequest:
     type: str
@@ -118,3 +89,25 @@ class RemoveElementRequest:
     type: str
     floor_id: int
     position: tuple[int, int]
+
+# Reservation requests
+@dataclass(frozen=True)
+class MakeReservationRequest:
+    room_id: int
+    guest_name: str
+    number_of_guests: int
+    check_in_date: str
+    check_out_date: str
+
+@dataclass(frozen=True)
+class EditReservationRequest:
+    reservation_id: str
+    room_id: int
+    guest_name: str
+    number_of_guests: int
+    check_in_date: str
+    check_out_date: str
+
+@dataclass(frozen=True)
+class DeleteReservationRequest:
+    reservation_id: str

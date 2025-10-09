@@ -3,86 +3,17 @@ from datetime import datetime, date
 
 
 class Action:
-    """ Abstract base class for actions that can be undone and redone."""
+    """Abstract base class for actions that can be undone and redone."""
     def redo(self):
         raise NotImplementedError
 
     def undo(self):
         raise NotImplementedError
 
-# ---- Reservation Actions ----
-class MakeReservationAction(Action):
-    def __init__(self, reservation_service, request):
-        self.reservation_service = reservation_service
-        self.reservation_id = None
-        self.room_id = request.room_id
-        self.guest_name = request.guest_name
-        self.number_of_guests = request.number_of_guests
-        self.check_in_date = request.check_in_date
-        self.check_out_date = request.check_out_date
 
-    def redo(self):
-        self.reservation_id = self.reservation_service.make_reservation(
-            room_id=self.room_id, guest_name=self.guest_name, number_of_guests=self.number_of_guests,
-            check_in_date=self.check_in_date, check_out_date=self.check_out_date
-        )
-
-    def undo(self):
-        self.reservation_service.delete_reservation(self.reservation_id)
-
-class EditReservationAction(Action):
-    def __init__(self, reservation_service, request):
-        self.reservation_service = reservation_service
-        self.reservation_id = request.reservation_id
-        self.room_id = request.room_id
-        self.guest_name = request.guest_name
-        self.number_of_guests = request.number_of_guests
-        self.check_in_date = request.check_in_date
-        self.check_out_date = request.check_out_date
-        old_reservation = self.reservation_service.get_by_reservation_id(self.reservation_id)
-        self.old_room_id = old_reservation.room_id
-        self.old_guest_name = old_reservation.guest_name
-        self.old_number_of_guests = old_reservation.number_of_guests
-        self.old_check_in_date = _format_iso_date(old_reservation.check_in_date)
-        self.old_check_out_date = _format_iso_date(old_reservation.check_out_date)
-
-    def redo(self):
-        self.reservation_service.update_reservation(
-            self.reservation_id,
-            self.room_id, self.guest_name, self.number_of_guests,
-            self.check_in_date, self.check_out_date
-        )
-
-    def undo(self):
-        self.reservation_service.update_reservation(
-            self.reservation_id,
-            self.old_room_id, self.old_guest_name, self.old_number_of_guests,
-            self.old_check_in_date, self.old_check_out_date
-        )
-
-class DeleteReservationAction(Action):
-    def __init__(self, reservation_service, request):
-        self.reservation_service = reservation_service
-        self.reservation_id = request.reservation_id
-        reservation = self.reservation_service.get_by_reservation_id(self.reservation_id)
-        self.room_id = reservation.room_id
-        self.guest_name = reservation.guest_name
-        self.number_of_guests = reservation.number_of_guests
-        self.check_in_date = _format_iso_date(reservation.check_in_date)
-        self.check_out_date = _format_iso_date(reservation.check_out_date)
-
-    def redo(self):
-        self.reservation_service.delete_reservation(self.reservation_id)
-
-    def undo(self):
-        self.reservation_service.make_reservation(
-            reservation_id=self.reservation_id,
-            room_id=self.room_id, guest_name=self.guest_name, number_of_guests=self.number_of_guests,
-            check_in_date=self.check_in_date, check_out_date=self.check_out_date
-        )
-
-# ---- Floor Actions ----
+# Floor actions
 class AddFloorAction(Action):
+    """Action to add a floor."""
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
         self.floor_id = None
@@ -96,6 +27,7 @@ class AddFloorAction(Action):
         self.hotel_service.remove_floor(self.floor_id)
 
 class RenameFloorAction(Action):
+    """Action to rename a floor."""
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
         self.floor_id = request.floor_id
@@ -110,6 +42,7 @@ class RenameFloorAction(Action):
         self.hotel_service.rename_floor(self.new_name, self.old_name)
 
 class UpdateFloorLevelAction(Action):
+    """Action to update a floor's level."""
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
         self.floor_id = request.floor_id
@@ -124,6 +57,7 @@ class UpdateFloorLevelAction(Action):
         self.hotel_service.update_floor_level(self.floor_id, self.old_level)
 
 class RemoveFloorAction(Action):
+    """Action to remove a floor."""
     def __init__(self, hotel_service, reservation_service, request):
         self.hotel_service = hotel_service
         self.reservation_service = reservation_service
@@ -167,8 +101,9 @@ class RemoveFloorAction(Action):
                 _format_iso_date(res.check_in_date), _format_iso_date(res.check_out_date)
             )
 
-# ---- Floor Element Actions ----
+# Floor element actions
 class AddElementAction(Action):
+    """Action to add a floor element."""
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
         self.element_id = None
@@ -193,6 +128,7 @@ class AddElementAction(Action):
         self.hotel_service.remove_element(self.element_id, element.type, self.floor_id)
 
 class EditRoomAction(Action):
+    """Action to edit a room."""
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
         self.element_id = request.element_id
@@ -211,6 +147,7 @@ class EditRoomAction(Action):
         self.hotel_service.edit_room(self.element_id, self.old_number, self.old_capacity, self.old_price)
 
 class MoveElementAction(Action):
+    """Action to move a floor element."""
     def __init__(self, hotel_service, request):
         self.hotel_service = hotel_service
         self.element_id = request.element_id
@@ -230,6 +167,7 @@ class MoveElementAction(Action):
         self.hotel_service.move_element(self.element_id, self.old_position)
 
 class RemoveElementAction(Action):
+    """Action to remove a floor element."""
     def __init__(self, hotel_service, reservation_service, request):
         self.hotel_service = hotel_service
         self.reservation_service = reservation_service
@@ -268,12 +206,88 @@ class RemoveElementAction(Action):
                     _format_iso_date(res.check_out_date)
                 )
 
-# ---- Helper Functions ----
+# Reservation actions
+class MakeReservationAction(Action):
+    """Action to make a reservation."""
+    def __init__(self, reservation_service, request):
+        self.reservation_service = reservation_service
+        self.reservation_id = None
+        self.room_id = request.room_id
+        self.guest_name = request.guest_name
+        self.number_of_guests = request.number_of_guests
+        self.check_in_date = request.check_in_date
+        self.check_out_date = request.check_out_date
+
+    def redo(self):
+        self.reservation_id = self.reservation_service.make_reservation(
+            room_id=self.room_id, guest_name=self.guest_name, number_of_guests=self.number_of_guests,
+            check_in_date=self.check_in_date, check_out_date=self.check_out_date
+        )
+
+    def undo(self):
+        self.reservation_service.delete_reservation(self.reservation_id)
+
+class EditReservationAction(Action):
+    """Action to edit a reservation."""
+    def __init__(self, reservation_service, request):
+        self.reservation_service = reservation_service
+        self.reservation_id = request.reservation_id
+        self.room_id = request.room_id
+        self.guest_name = request.guest_name
+        self.number_of_guests = request.number_of_guests
+        self.check_in_date = request.check_in_date
+        self.check_out_date = request.check_out_date
+        old_reservation = self.reservation_service.get_by_reservation_id(self.reservation_id)
+        self.old_room_id = old_reservation.room_id
+        self.old_guest_name = old_reservation.guest_name
+        self.old_number_of_guests = old_reservation.number_of_guests
+        self.old_check_in_date = _format_iso_date(old_reservation.check_in_date)
+        self.old_check_out_date = _format_iso_date(old_reservation.check_out_date)
+
+    def redo(self):
+        self.reservation_service.update_reservation(
+            self.reservation_id,
+            self.room_id, self.guest_name, self.number_of_guests,
+            self.check_in_date, self.check_out_date
+        )
+
+    def undo(self):
+        self.reservation_service.update_reservation(
+            self.reservation_id,
+            self.old_room_id, self.old_guest_name, self.old_number_of_guests,
+            self.old_check_in_date, self.old_check_out_date
+        )
+
+class DeleteReservationAction(Action):
+    """Action to delete a reservation."""
+    def __init__(self, reservation_service, request):
+        self.reservation_service = reservation_service
+        self.reservation_id = request.reservation_id
+        reservation = self.reservation_service.get_by_reservation_id(self.reservation_id)
+        self.room_id = reservation.room_id
+        self.guest_name = reservation.guest_name
+        self.number_of_guests = reservation.number_of_guests
+        self.check_in_date = _format_iso_date(reservation.check_in_date)
+        self.check_out_date = _format_iso_date(reservation.check_out_date)
+
+    def redo(self):
+        self.reservation_service.delete_reservation(self.reservation_id)
+
+    def undo(self):
+        self.reservation_service.make_reservation(
+            reservation_id=self.reservation_id,
+            room_id=self.room_id, guest_name=self.guest_name, number_of_guests=self.number_of_guests,
+            check_in_date=self.check_in_date, check_out_date=self.check_out_date
+        )
+
+# Utility functions
 def _parse_iso_date(s : str) -> date:
+    """Parse a date string in ISO format (YYYY-MM-DD) to a date object."""
     try:
         return datetime.strptime(s, "%Y-%m-%d").date()
     except ValueError as e:
         raise ValueError(f"Invalid date format, expected YYYY-MM-DD: {s}") from e
 
 def _format_iso_date(d : date) -> str:
+    """Format a date object to a string in ISO format (YYYY-MM-DD)."""
     return d.isoformat()
