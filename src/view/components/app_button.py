@@ -42,7 +42,7 @@ class AppButton(QWidget):
         self.lock_icon.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.lock_icon.setStyleSheet("background: transparent;")
 
-        pixmap = QPixmap("src/ui/assets/lock_icon.png")
+        pixmap = QPixmap("src/view/assets/lock_icon.png")
         if pixmap.isNull():
             print(f'The path: "src/ui/lock_icon.png" does not contain the image.')
         elif not pixmap.hasAlphaChannel():
