@@ -299,7 +299,7 @@ class HotelConfiguratorWindow(QMainWindow):
                 req = AddElementRequest(
                     type="room", floor_id=self.selected_floor.db_id,
                     position=position, number="1",
-                    capacity=2, price_per_night=100
+                    capacity=2, price_per_night=100.0
                 )
             elif element_type == "hallway":
                 req = AddElementRequest(
