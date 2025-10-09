@@ -7,8 +7,7 @@ class ValidationError(ApplicationException):
 
 class DatabaseError(ApplicationException):
     pass
-class DatabaseUnavailableError(DatabaseError):
-    pass
+
 
 class RepositoryError(ApplicationException):
     pass
