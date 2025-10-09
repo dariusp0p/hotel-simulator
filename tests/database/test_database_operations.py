@@ -1,5 +1,6 @@
 import pytest
 from src.db.database_operations import *
+from src.utilities.exceptions import DatabaseError
 
 
 def test_create_hotel_simulator_model(in_memory_db):
@@ -121,5 +122,5 @@ def test_error_handling(in_memory_db):
 
     # Test duplicate constraint error
     floor_id = insert_floor(in_memory_db, "Unique Floor", 1)
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(DatabaseError):
         insert_floor(in_memory_db, "Unique Floor", 2)  # Duplicate name

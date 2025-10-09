@@ -1,4 +1,4 @@
-from src.domain.floor_element import FloorElement
+from src.model.domain.floor_element import FloorElement
 
 
 def test_initialization_defaults():
