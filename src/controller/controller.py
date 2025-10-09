@@ -191,13 +191,55 @@ class Controller:
 
     # TODO
     # Search
-    def reservation_search(self, search_bar_string=None, from_date=None, to_date=None):
-        result = self.__reservation_service.search(search_bar_string, from_date, to_date)
-        return [self._to_reservation_dto(res) for res in result]
+    def reservation_search(self, search_bar_string: str, from_date: date = None, to_date: date = None) -> list[
+        ReservationDTO]:
+        """Search reservations by reservation ID, guest name, or room number, with optional date filtering."""
+        results = []
 
-    def reservation_direct_search(self, search_bar_string):
-        result = self.__reservation_service.direct_search(search_bar_string)
-        return [self._to_reservation_dto(res) for res in result]
+        rooms = self.__hotel_service.get_rooms_by_partial_number(search_bar_string)
+        room_ids = {room.db_id for room in rooms}
+
+        all_reservations = self.__reservation_service.get_all_reservations()
+        for reservation in all_reservations:
+            if (
+                    search_bar_string in reservation.reservation_id
+                    or search_bar_string.lower() in reservation.guest_name.lower()
+                    or reservation.room_id in room_ids
+            ):
+                results.append(reservation)
+
+        if from_date:
+            results = [res for res in results if res.check_out_date >= from_date]
+        if to_date:
+            results = [res for res in results if res.check_in_date <= to_date]
+
+        return [self._to_reservation_dto(res) for res in results]
+
+    def reservation_direct_search(self, search_bar_string: str) -> list[ReservationDTO]:
+        """Direct search for reservations by reservation ID, guest name, or room number."""
+        results = []
+        reservation_by_id = self.__reservation_service.get_by_reservation_id(search_bar_string)
+        if reservation_by_id:
+            results.append(reservation_by_id)
+            return [self._to_reservation_dto(res) for res in results]
+
+        all_reservations = self.__reservation_service.get_all_reservations()
+        for reservation in all_reservations:
+            if search_bar_string.lower() in reservation.guest_name.lower():
+                results.append(reservation)
+
+        try:
+            room = self.__hotel_service.get_room_by_number(search_bar_string)
+            room_id = room.db_id if room else None
+        except Exception:
+            room_id = None
+
+        if room_id is not None:
+            for reservation in all_reservations:
+                if reservation.room_id == room_id:
+                    results.append(reservation)
+
+        return [self._to_reservation_dto(res) for res in results]
 
     # CRUD operations
 

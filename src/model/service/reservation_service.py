@@ -27,51 +27,6 @@ class ReservationService:
         """Returns all reservations for the given room ID."""
         return self.__repository.get_reservations_by_room_id(room_id)
 
-    # Searches
-    def search(self, search_bar_string: str, from_date: date = None, to_date: date = None) -> list[Reservation]:
-        """Performs a flexible search for reservations based on a search string and optional date range."""
-        results = []
-        for reservation in self.__repository.get_all_reservations():
-            if (search_bar_string in reservation.reservation_id
-                    or search_bar_string.lower() in reservation.guest_name.lower()):
-                results.append(reservation)
-
-        if from_date:
-            filtered_results = [
-                res for res in results
-                if res.check_out_date >= from_date
-            ]
-            results = filtered_results
-        if to_date:
-            filtered_results = [
-                res for res in results
-                if res.check_in_date <= to_date
-            ]
-            results = filtered_results
-
-        return results
-
-    def direct_search(self, search_bar_string: str) -> list[Reservation]:
-        """Performs a direct search for reservations based on reservation ID or guest name."""
-        results = []
-
-        reservation_by_id = self.__repository.get_by_reservation_id(search_bar_string)
-        if reservation_by_id:
-            results.append(reservation_by_id)
-            return results
-
-        reservations_by_guest_name = self.__repository.get_reservations_by_guest_name(search_bar_string)
-        if reservations_by_guest_name:
-            results.extend(reservations_by_guest_name)
-            return results
-
-        # reservations_by_room_id = self.__repository.get_reservations_by_room_id(search_bar_string)
-        # if reservations_by_room_id:
-        #     results.extend(reservations_by_room_id)
-        #     return results
-
-        return results
-
     # CRUD operations
     def make_reservation(self, room_id: int, guest_name: str, number_of_guests: int,
                          check_in_date: str, check_out_date: str, reservation_id: str = None) -> str | None:

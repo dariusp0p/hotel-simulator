@@ -95,6 +95,10 @@ class HotelRepository:
             raise FloorNotFoundError(f"Floor {floor_id} not found!")
         return self.__floors_by_id[floor_id].elements
 
+    def get_all_rooms(self) -> list[Room]:
+        """Returns a list of all rooms. Theta(1) complexity."""
+        return list(self.__rooms_by_id.values())
+
     def get_room_by_id(self, room_id: int) -> Room | None:
         """Returns the room with the specified ID. Theta(1) complexity."""
         room = self.__rooms_by_id.get(room_id)

@@ -52,6 +52,15 @@ class HotelService:
         """Returns the room with the given room number."""
         return self.__repository.get_room_by_number(room_number)
 
+    def get_rooms_by_partial_number(self, partial_number: str) -> list[Room]:
+        """Returns a list of rooms whose number contains the partial_number string (case-insensitive)."""
+        all_rooms = self.__repository.get_all_rooms()
+        partial_number_lower = partial_number.lower()
+        return [
+            room for room in all_rooms
+            if partial_number_lower in str(room.number).lower()
+        ]
+
     def get_rooms_by_capacity(self, capacity: int) -> list[Room]:
         """Returns all rooms that can accommodate the given capacity."""
         return self.__repository.get_rooms_by_capacity(capacity)
