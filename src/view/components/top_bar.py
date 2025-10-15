@@ -3,8 +3,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 
 
-
 class TopBar(QWidget):
+    """A top bar with dynamic buttons."""
     def __init__(self, buttons_config, parent=None):
         super().__init__(parent)
         self.setFixedHeight(50)

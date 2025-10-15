@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QAbstractButton
-from PyQt6.QtCore import Qt, QPropertyAnimation, QRect, pyqtProperty
+from PyQt6.QtWidgets import QAbstractButton
+from PyQt6.QtCore import Qt, QPropertyAnimation, pyqtProperty
 from PyQt6.QtGui import QPainter, QColor, QBrush
 
 
 class CustomSwitch(QAbstractButton):
+    """A custom toggle switch widget."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setCheckable(True)

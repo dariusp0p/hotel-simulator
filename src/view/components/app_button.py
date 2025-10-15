@@ -1,3 +1,5 @@
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget,
     QPushButton,
@@ -6,11 +8,10 @@ from PyQt6.QtWidgets import (
     QSizePolicy,
     QGraphicsBlurEffect,
 )
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
 
 
 class AppButton(QWidget):
+    """A large button with lock/unlock functionality."""
     def __init__(self, line1: str, line2: str):
         super().__init__()
 
