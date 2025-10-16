@@ -213,7 +213,7 @@ class SideBar(QWidget):
         if room:
             self.roomNumberEdit.setText(str(room.number))
             self.roomCapacityEdit.setText(str(room.capacity))
-            self.roomPriceEdit.setText(str(room.price_per_night))
+            self.roomPriceEdit.setText(str(room.pricePerNight))
         else:
             self.roomNumberEdit.clear()
             self.roomCapacityEdit.clear()

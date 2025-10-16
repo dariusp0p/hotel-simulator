@@ -362,6 +362,16 @@ class HotelConfiguratorWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to update room: {str(e)}")
 
     def handleElementMoved(self, elementId, newPosition):
+        floorGrid = self.controller.get_floor_grid(self.selectedFloor.db_id)
+        currentPosition = None
+        for position, element in floorGrid.items():
+            if element and element.db_id == elementId:
+                currentPosition = position
+                break
+        if currentPosition == newPosition:
+            self.refreshGrid()
+            return
+
         try:
             req = MoveElementRequest(element_id=elementId, floor_id=self.selectedFloor.db_id, position=newPosition)
             self.controller.move_element(req)
