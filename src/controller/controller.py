@@ -260,6 +260,7 @@ class Controller:
 
     def remove_floor(self, request):
         """Removes a floor from the hotel."""
+        self.clear_stacks()
         action = RemoveFloorAction(self.__hotel_service, self.__reservation_service, request)
         self.__action_manager.do_action(action)
 
@@ -283,6 +284,7 @@ class Controller:
 
     def remove_element(self, request):
         """Removes a floor element or room from a floor."""
+        self.clear_stacks()
         action = RemoveElementAction(self.__hotel_service, self.__reservation_service, request)
         self.__action_manager.do_action(action)
 
