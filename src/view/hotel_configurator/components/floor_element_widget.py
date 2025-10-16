@@ -3,133 +3,126 @@ from PyQt6.QtGui import QColor, QPen, QFont
 
 
 class FloorElementWidget:
-    def __init__(self, element_type, position, element_id=None, number=None, capacity=None, price_per_night=None):
-        self.element_type = element_type
+    """Widget representing a floor element (room, staircase, hallway) in the hotel configurator."""
+    def __init__(self, elementType, position, elementId=None, number=None, capacity=None, pricePerNight=None):
+        self.elementType = elementType
         self.position = position
-        self.element_id = element_id
+        self.elementId = elementId
         self.number = number
         self.capacity = capacity
-        self.price_per_night = price_per_night
+        self.pricePerNight = pricePerNight
 
         self.selected = False
         self.hovered = False
 
-
-    def draw_background(self, painter, cell_size, pos=None):
+    def drawBackground(self, painter, cellSize, pos=None):
         if not self.position or not isinstance(self.position, tuple) or len(self.position) != 2:
             print(f"Invalid position for element: {self}")
             return
 
         if pos is not None:
-            x = int(pos.x() - cell_size / 2)
-            y = int(pos.y() - cell_size / 2)
+            x = int(pos.x() - cellSize / 2)
+            y = int(pos.y() - cellSize / 2)
         else:
-            x = int(self.position[0] * cell_size)
-            y = int(self.position[1] * cell_size)
+            x = int(self.position[0] * cellSize)
+            y = int(self.position[1] * cellSize)
 
-        if self.element_type == "room":
-            background_color = QColor(173, 216, 230)  # Light blue
-        elif self.element_type == "staircase":
-            background_color = QColor(255, 249, 196)  # Light yellow
-        elif self.element_type == "hallway":
-            background_color = QColor(211, 211, 211)  # Light gray
+        if self.elementType == "room":
+            backgroundColor = QColor(173, 216, 230)  # Light blue
+        elif self.elementType == "staircase":
+            backgroundColor = QColor(255, 249, 196)  # Light yellow
+        elif self.elementType == "hallway":
+            backgroundColor = QColor(211, 211, 211)  # Light gray
         else:
-            background_color = QColor(255, 192, 203)  # Light pink (unknown element)
+            backgroundColor = QColor(255, 192, 203)  # Light pink (unknown element)
 
         if self.selected:
-            border_width = 3
-            border_color = QColor(255, 0, 0)  # Red
+            borderWidth = 3
+            borderColor = QColor(255, 0, 0)  # Red
         else:
-            border_width = 1
-            border_color = QColor(50, 50, 50)  # Dark gray
+            borderWidth = 1
+            borderColor = QColor(50, 50, 50)  # Dark gray
 
-        # Draw the element rectangle
-        painter.setPen(QPen(border_color, border_width))
-        painter.fillRect(x, y, cell_size, cell_size, background_color)
-        painter.drawRect(x, y, cell_size, cell_size)
+        painter.setPen(QPen(borderColor, borderWidth))
+        painter.fillRect(x, y, cellSize, cellSize, backgroundColor)
+        painter.drawRect(x, y, cellSize, cellSize)
 
-
-    def draw_text(self, painter, cell_size, pos=None):
+    def drawText(self, painter, cellSize, pos=None):
         if not self.position or not isinstance(self.position, tuple) or len(self.position) != 2:
             print(f"Invalid position for element: {self}")
             return
 
         if pos is not None:
-            x = int(pos.x() - cell_size / 2)
-            y = int(pos.y() - cell_size / 2)
+            x = int(pos.x() - cellSize / 2)
+            y = int(pos.y() - cellSize / 2)
         else:
-            x = int(self.position[0] * cell_size)
-            y = int(self.position[1] * cell_size)
+            x = int(self.position[0] * cellSize)
+            y = int(self.position[1] * cellSize)
 
-        if self.element_type == "room":
-            text_color = QColor(0, 0, 100)
-        elif self.element_type == "staircase":
-            text_color = QColor(120, 90, 0)
-        elif self.element_type == "hallway":
-            text_color = QColor(50, 50, 50)
+        if self.elementType == "room":
+            textColor = QColor(0, 0, 100)
+        elif self.elementType == "staircase":
+            textColor = QColor(120, 90, 0)
+        elif self.elementType == "hallway":
+            textColor = QColor(50, 50, 50)
         else:
-            text_color = QColor(100, 0, 0)
+            textColor = QColor(100, 0, 0)
 
-        painter.setPen(text_color)
+        painter.setPen(textColor)
         font = QFont("Arial", 10)
         font.setBold(True)
         painter.setFont(font)
 
-        # Draw element type
-        if self.element_type == "room":
+        if self.elementType == "room":
             painter.drawText(
-                QRectF(x, y, cell_size, cell_size / 2),
+                QRectF(x, y, cellSize, cellSize / 2),
                 Qt.AlignmentFlag.AlignCenter,
-                self.element_type.capitalize() + f" {self.number}"
+                self.elementType.capitalize() + f" {self.number}"
             )
             painter.drawText(
-                QRectF(x, y + 2 * cell_size / 4, cell_size, cell_size / 4),
+                QRectF(x, y + 2 * cellSize / 4, cellSize, cellSize / 4),
                 Qt.AlignmentFlag.AlignCenter,
                 f"Cap: {self.capacity}"
             )
             painter.drawText(
-                QRectF(x, y + 3 * cell_size / 4, cell_size, cell_size / 4),
+                QRectF(x, y + 3 * cellSize / 4, cellSize, cellSize / 4),
                 Qt.AlignmentFlag.AlignCenter,
-                f"Price: {self.price_per_night}"
+                f"Price: {self.pricePerNight}"
             )
         else:
             painter.drawText(
-                QRectF(x, y, cell_size, cell_size),
+                QRectF(x, y, cellSize, cellSize),
                 Qt.AlignmentFlag.AlignCenter,
-                self.element_type.capitalize()
+                self.elementType.capitalize()
             )
 
-        # Draw X button when hovered
         if self.hovered:
-            x_btn_size = cell_size / 4
-            x_btn_x = int(self.position[0] * cell_size + cell_size - x_btn_size - 2)
-            x_btn_y = int(self.position[1] * cell_size + 2)
+            xBtnSize = cellSize / 4
+            xBtnX = int(self.position[0] * cellSize + cellSize - xBtnSize - 2)
+            xBtnY = int(self.position[1] * cellSize + 2)
 
-            # X symbol
             painter.setPen(QPen(QColor(0, 0, 0), 2))
             margin = 4
             painter.drawLine(
-                QPointF(x_btn_x + margin, x_btn_y + margin),
-                QPointF(x_btn_x + x_btn_size - margin, x_btn_y + x_btn_size - margin)
+                QPointF(xBtnX + margin, xBtnY + margin),
+                QPointF(xBtnX + xBtnSize - margin, xBtnY + xBtnSize - margin)
             )
             painter.drawLine(
-                QPointF(x_btn_x + x_btn_size - margin, x_btn_y + margin),
-                QPointF(x_btn_x + margin, x_btn_y + x_btn_size - margin)
+                QPointF(xBtnX + xBtnSize - margin, xBtnY + margin),
+                QPointF(xBtnX + margin, xBtnY + xBtnSize - margin)
             )
 
-
-    def is_delete_button_clicked(self, point, cell_size, offset, scale_factor):
+    def isDeleteButtonClicked(self, point, cellSize, offset, scaleFactor):
         if not self.hovered:
             return False
 
-        local_x = (point.x() - offset.x()) / scale_factor - self.position[0] * cell_size
-        local_y = (point.y() - offset.y()) / scale_factor - self.position[1] * cell_size
+        localX = (point.x() - offset.x()) / scaleFactor - self.position[0] * cellSize
+        localY = (point.y() - offset.y()) / scaleFactor - self.position[1] * cellSize
 
-        x_btn_size = cell_size / 4
-        x_btn_x = cell_size - x_btn_size - 2
-        x_btn_y = 2
+        xBtnSize = cellSize / 4
+        xBtnX = cellSize - xBtnSize - 2
+        xBtnY = 2
 
-        clicked = (x_btn_x <= local_x <= x_btn_x + x_btn_size and
-                   x_btn_y <= local_y <= x_btn_y + x_btn_size)
-
+        clicked = (xBtnX <= localX <= xBtnX + xBtnSize and
+                   xBtnY <= localY <= xBtnY + xBtnSize)
         return clicked

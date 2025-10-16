@@ -1,9 +1,9 @@
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLineEdit, QLabel, QSizePolicy, QFrame,
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPalette, QColor
 
 from src.view.components.app_button import AppButton
 from src.view.components.custom_switch import CustomSwitch
@@ -11,110 +11,66 @@ from src.utilities.user import User
 
 
 class HomeWindow(QWidget):
-    def __init__(self, on_reservation_manager_click=None, on_simulator_click=None, on_hotel_configurator_click=None):
+    """Home screen with navigation buttons and user section."""
+    def __init__(self, onReservationManagerClick, onSimulatorClick, onHotelConfiguratorClick):
         super().__init__()
-        self.on_hotel_configurator_click = on_hotel_configurator_click
-        self.on_reservation_manager_click = on_reservation_manager_click
-        self.on_simulator_click = on_simulator_click
+        self.onHotelConfiguratorClick = onHotelConfiguratorClick
+        self.onReservationManagerClick = onReservationManagerClick
+        self.onSimulatorClick = onSimulatorClick
 
+        self.setupUi()
+        self.updateButtonStates()
+
+    def setupUi(self):
         self.setAutoFillBackground(True)
         palette = self.palette()
-        palette.setColor(self.backgroundRole(), QColor(245, 245, 245))  # #F5F5F5
+        palette.setColor(self.backgroundRole(), QColor(245, 245, 245))
         self.setPalette(palette)
 
-        self.main_layout = QVBoxLayout()
-        self.setLayout(self.main_layout)
+        self.mainLayout = QVBoxLayout()
+        self.setLayout(self.mainLayout)
 
-        self.init_buttons()
-        self.init_user_section()
-        self.update_button_states()
+        self.buttonsLayout = QHBoxLayout()
+        self.buttonsLayout.setSpacing(20)
 
+        self.hotelConfiguratorBtn = AppButton("Hotel", "Configurator")
+        self.reservationManagerBtn = AppButton("Reservation", "Manager")
+        self.simulatorBtn = AppButton("Simulator", "")
 
-    def init_buttons(self):
-        self.buttons_layout = QHBoxLayout()
-        self.buttons_layout.setSpacing(20)
-
-        self.hotel_configurator_btn = AppButton("Hotel", "Configurator")
-        self.reservation_manager_btn = AppButton("Reservation", "Manager")
-        self.simulator_btn = AppButton("Simulator", "")
-
-        for btn in [self.hotel_configurator_btn, self.reservation_manager_btn, self.simulator_btn]:
+        for btn in [self.hotelConfiguratorBtn, self.reservationManagerBtn, self.simulatorBtn]:
             btn.setMinimumSize(330, 240)
             btn.setMaximumSize(550, 400)
             btn.setSizePolicy(
                 QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
             )
-            self.buttons_layout.addWidget(btn)
+            self.buttonsLayout.addWidget(btn)
 
-        self.hotel_configurator_btn.connect(self.handle_hotel_configurator_click)
-        self.reservation_manager_btn.connect(self.handle_reservation_manager_click)
-        self.simulator_btn.connect(self.handle_simulator_click)
+        self.hotelConfiguratorBtn.connect(self.handleHotelConfiguratorClick)
+        self.reservationManagerBtn.connect(self.handleReservationManagerClick)
+        self.simulatorBtn.connect(self.handleSimulatorClick)
 
-        outer_layout = QHBoxLayout()
-        outer_layout.setContentsMargins(40, 0, 40, 0)
-        outer_layout.addLayout(self.buttons_layout)
+        outerLayout = QHBoxLayout()
+        outerLayout.setContentsMargins(40, 0, 40, 0)
+        outerLayout.addLayout(self.buttonsLayout)
 
-        self.main_layout.addSpacing(50)
-        self.main_layout.addLayout(outer_layout)
+        self.mainLayout.addSpacing(50)
+        self.mainLayout.addLayout(outerLayout)
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
+        self.userLayout = QHBoxLayout()
+        self.userLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.userLayout.setContentsMargins(0, 0, 0, 0)
+        self.userLayout.setSpacing(20)
 
-        width = self.width()
-        per_btn_width = width // 4
+        self.nameInput = QLineEdit()
+        self.nameInput.setPlaceholderText("Enter your name")
+        self.nameInput.textChanged.connect(self.updateButtonStates)
 
-        desired_width = max(240, min(per_btn_width, 400))
-        desired_height = int(desired_width / 0.727)
-
-        for btn in [self.reservation_manager_btn, self.simulator_btn, self.hotel_configurator_btn]:
-            btn.setFixedSize(desired_width, desired_height)
-
-        self.resize_user_section()
-
-    def resize_user_section(self):
-        width = self.width()
-        per_widget_width = width // 4
-
-        desired_width = max(240, min(per_widget_width, 400))
-        desired_height = 35
-
-        self.name_input.setFixedSize(desired_width, desired_height)
-
-        admin_frame = self.admin_switch.parent()
-        if isinstance(admin_frame, QWidget):
-            admin_frame.setFixedSize(desired_width, desired_height)
-
-        font_size = max(9, min(16, int(width / 90)))
-        self.name_input.setStyleSheet(
-            f"""
-            QLineEdit {{
-                color: white;
-                background-color: #333;
-                border: 1px solid #555;
-                border-radius: 8px;
-                padding: 6px;
-                font-size: {font_size}pt;
-            }}
-            """
-        )
-        self.admin_label.setStyleSheet(f"color: white; font-size: {font_size}pt;")
-
-    def init_user_section(self):
-        self.user_layout = QHBoxLayout()
-        self.user_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.user_layout.setContentsMargins(0, 0, 0, 0)
-        self.user_layout.setSpacing(20)
-
-        self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Enter your name")
-        self.name_input.textChanged.connect(self.update_button_states)
-
-        palette = self.name_input.palette()
+        palette = self.nameInput.palette()
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor("white"))
-        self.name_input.setPalette(palette)
+        self.nameInput.setPalette(palette)
 
-        self.name_input.setFixedSize(200, 35)
-        self.name_input.setStyleSheet(
+        self.nameInput.setFixedSize(200, 35)
+        self.nameInput.setStyleSheet(
             """
             QLineEdit {
                 color: white;
@@ -127,13 +83,13 @@ class HomeWindow(QWidget):
             """
         )
 
-        admin_frame = QFrame()
-        admin_layout = QHBoxLayout()
-        admin_layout.setContentsMargins(8, 3, 8, 3)
-        admin_layout.setSpacing(8)
-        admin_frame.setLayout(admin_layout)
-        admin_frame.setFixedSize(150, 35)
-        admin_frame.setStyleSheet(
+        adminFrame = QFrame()
+        adminLayout = QHBoxLayout()
+        adminLayout.setContentsMargins(8, 3, 8, 3)
+        adminLayout.setSpacing(8)
+        adminFrame.setLayout(adminLayout)
+        adminFrame.setFixedSize(150, 35)
+        adminFrame.setStyleSheet(
             """
             QFrame {
                 background-color: #333;
@@ -142,57 +98,92 @@ class HomeWindow(QWidget):
             """
         )
 
-        self.admin_label = QLabel("Admin mode")
-        self.admin_label.setStyleSheet("color: white; font-size: 11pt;")
+        self.adminLabel = QLabel("Admin mode")
+        self.adminLabel.setStyleSheet("color: white; font-size: 11pt;")
 
-        self.admin_switch = CustomSwitch()
-        self.admin_switch.toggled.connect(self.update_button_states)
+        self.adminSwitch = CustomSwitch()
+        self.adminSwitch.toggled.connect(self.updateButtonStates)
 
-        admin_layout.addWidget(self.admin_label)
-        admin_layout.addWidget(self.admin_switch)
+        adminLayout.addWidget(self.adminLabel)
+        adminLayout.addWidget(self.adminSwitch)
 
-        self.user_layout.addWidget(self.name_input)
-        self.user_layout.addWidget(admin_frame)
+        self.userLayout.addWidget(self.nameInput)
+        self.userLayout.addWidget(adminFrame)
 
-        self.user_container_layout = QHBoxLayout()
-        self.user_container_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.user_container_layout.setContentsMargins(0, 0, 0, 0)
-        self.user_container_layout.addLayout(self.user_layout)
+        self.userContainerLayout = QHBoxLayout()
+        self.userContainerLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.userContainerLayout.setContentsMargins(0, 0, 0, 0)
+        self.userContainerLayout.addLayout(self.userLayout)
 
-        self.main_layout.addSpacing(10)
-        self.main_layout.addLayout(self.user_container_layout)
+        self.mainLayout.addSpacing(10)
+        self.mainLayout.addLayout(self.userContainerLayout)
 
-    def update_button_states(self):
-        username = self.name_input.text().strip()
-        is_admin = self.admin_switch.isChecked()
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        width = self.width()
+        perBtnWidth = width // 4
+
+        desiredWidth = max(240, min(perBtnWidth, 400))
+        desiredHeight = int(desiredWidth / 0.727)
+
+        for btn in [self.reservationManagerBtn, self.simulatorBtn, self.hotelConfiguratorBtn]:
+            btn.setFixedSize(desiredWidth, desiredHeight)
+
+        width = self.width()
+        perWidgetWidth = width // 4
+
+        desiredWidth = max(240, min(perWidgetWidth, 400))
+        desiredHeight = 35
+
+        self.nameInput.setFixedSize(desiredWidth, desiredHeight)
+
+        adminFrame = self.adminSwitch.parent()
+        if isinstance(adminFrame, QWidget):
+            adminFrame.setFixedSize(desiredWidth, desiredHeight)
+
+        fontSize = max(9, min(16, int(width / 90)))
+        self.nameInput.setStyleSheet(
+            f"""
+                    QLineEdit {{
+                        color: white;
+                        background-color: #333;
+                        border: 1px solid #555;
+                        border-radius: 8px;
+                        padding: 6px;
+                        font-size: {fontSize}pt;
+                    }}
+                    """
+        )
+        self.adminLabel.setStyleSheet(f"color: white; font-size: {fontSize}pt;")
+
+    def updateButtonStates(self):
+        username = self.nameInput.text().strip()
+        isAdmin = self.adminSwitch.isChecked()
 
         User.username = username
-        User.is_admin = is_admin
+        User.is_admin = isAdmin
 
-        if is_admin:
-            self.reservation_manager_btn.unlock()
-            self.simulator_btn.unlock()
-            self.hotel_configurator_btn.unlock()
+        if isAdmin:
+            self.reservationManagerBtn.unlock()
+            self.simulatorBtn.unlock()
+            self.hotelConfiguratorBtn.unlock()
         else:
             if username:
-                self.reservation_manager_btn.unlock()
+                self.reservationManagerBtn.unlock()
             else:
-                self.reservation_manager_btn.lock()
+                self.reservationManagerBtn.lock()
 
-            self.simulator_btn.lock()
-            self.hotel_configurator_btn.lock()
+            self.simulatorBtn.lock()
+            self.hotelConfiguratorBtn.lock()
 
+    def handleHotelConfiguratorClick(self):
+        self.onHotelConfiguratorClick()
 
-    def handle_hotel_configurator_click(self):
-        if self.on_hotel_configurator_click:
-            self.on_hotel_configurator_click()
+    def handleReservationManagerClick(self):
+        if not self.reservationManagerBtn.isLocked():
+            self.onReservationManagerClick()
 
-    def handle_reservation_manager_click(self):
-        if not self.reservation_manager_btn.is_locked() and self.on_reservation_manager_click:
-            # self.on_reservation_manager_click(self.admin_switch.isChecked())
-            self.on_reservation_manager_click()
-
-
-    def handle_simulator_click(self):
-        if not self.simulator_btn.is_locked() and self.on_simulator_click:
-            self.on_simulator_click()
+    def handleSimulatorClick(self):
+        if not self.simulatorBtn.isLocked():
+            self.onSimulatorClick()

@@ -6,55 +6,58 @@ from src.view.reservation_manager.reservation_manager_window import ReservationM
 from src.view.simulator.simulator_window import SimulatorWindow
 
 
-
 class MainWindow(QMainWindow):
+    """Main application window."""
     def __init__(self, controller):
         super().__init__()
         self.setWindowTitle("Hotel Simulator")
         self.resize(1000, 700)
 
+        self.controller = controller
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
         self.home = HomeWindow(
-            on_reservation_manager_click=self.show_reservation_manager,
-            on_simulator_click=self.show_simulator,
-            on_hotel_configurator_click=self.show_hotel_configurator,
+            onReservationManagerClick=self.showReservationManager,
+            onSimulatorClick=self.showSimulator,
+            onHotelConfiguratorClick=self.showHotelConfigurator,
         )
 
-        self.hotel_configurator = HotelConfiguratorWindow(
-            on_back=self.show_home,
+        self.hotelConfigurator = HotelConfiguratorWindow(
+            onBack=self.showHome,
             controller=controller
         )
 
-        self.reservation_manager = ReservationManagerWindow(
-            on_back=self.show_home,
+        self.reservationManager = ReservationManagerWindow(
+            onBack=self.showHome,
             controller=controller
         )
 
         self.simulator = SimulatorWindow(
-            on_back=self.show_home,
+            onBack=self.showHome,
             controller=controller
         )
 
         self.stack.addWidget(self.home)
-        self.stack.addWidget(self.hotel_configurator)
-        self.stack.addWidget(self.reservation_manager)
+        self.stack.addWidget(self.hotelConfigurator)
+        self.stack.addWidget(self.reservationManager)
         self.stack.addWidget(self.simulator)
 
         self.stack.setCurrentWidget(self.home)
 
-
-    def show_home(self):
+    def showHome(self):
+        self.controller.clear_stacks()
         self.stack.setCurrentWidget(self.home)
 
-    def show_hotel_configurator(self):
-        self.stack.setCurrentWidget(self.hotel_configurator)
+    def showHotelConfigurator(self):
+        self.hotelConfigurator.sideBar.populateFloorList()
+        self.hotelConfigurator.updateUndoRedoButtons()
+        self.hotelConfigurator.ensureSelectedFloorExists()
+        self.hotelConfigurator.refreshGrid()
+        self.stack.setCurrentWidget(self.hotelConfigurator)
 
-    def show_simulator(self):
+    def showSimulator(self):
         self.stack.setCurrentWidget(self.simulator)
 
-    def show_reservation_manager(self):
-        self.stack.setCurrentWidget(self.reservation_manager)
-
-
+    def showReservationManager(self):
+        self.stack.setCurrentWidget(self.reservationManager)

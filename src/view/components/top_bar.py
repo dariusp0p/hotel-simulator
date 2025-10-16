@@ -5,7 +5,7 @@ from PyQt6.QtGui import QColor
 
 class TopBar(QWidget):
     """A top bar with dynamic buttons."""
-    def __init__(self, buttons_config, parent=None):
+    def __init__(self, buttonsConfig, parent=None):
         super().__init__(parent)
         self.setFixedHeight(50)
         self.setAutoFillBackground(True)
@@ -17,23 +17,23 @@ class TopBar(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 5, 10, 5)
 
-        back_button_config = next((btn for btn in buttons_config if btn['label'] == "← Back"), None)
-        if back_button_config:
-            back_button = QPushButton(back_button_config['label'])
-            back_button.setFixedSize(80, 40)
-            back_button.setStyleSheet(
+        backButtonConfig = next((btn for btn in buttonsConfig if btn['label'] == "← Back"), None)
+        if backButtonConfig:
+            backButton = QPushButton(backButtonConfig['label'])
+            backButton.setFixedSize(80, 40)
+            backButton.setStyleSheet(
                 "QPushButton {background-color: #333; color: white; border: none; font-weight: bold; padding: 8px;} "
                 "QPushButton:hover {background-color: #555;}"
             )
-            back_button.setCursor(Qt.CursorShape.PointingHandCursor)
-            back_button.clicked.connect(back_button_config['callback'])
-            layout.addWidget(back_button)
+            backButton.setCursor(Qt.CursorShape.PointingHandCursor)
+            backButton.clicked.connect(backButtonConfig['callback'])
+            layout.addWidget(backButton)
         else:
             layout.addSpacerItem(QSpacerItem(80, 40, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum))
 
         layout.addStretch()
 
-        for config in buttons_config:
+        for config in buttonsConfig:
             if config['label'] not in ["← Back"]:
                 button = QPushButton(config['label'])
                 button.setFixedSize(80, 40)
@@ -46,7 +46,7 @@ class TopBar(QWidget):
                 button.clicked.connect(config['callback'])
                 layout.addWidget(button)
 
-    def set_button_enabled(self, button: str, enabled: bool):
+    def setButtonEnabled(self, button: str, enabled: bool):
         for b in self.findChildren(QPushButton):
             if b.text() == button:
                 b.setEnabled(enabled)

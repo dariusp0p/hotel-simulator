@@ -1,8 +1,8 @@
+import random
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QInputDialog, QMessageBox
 )
-from PyQt6.QtCore import Qt
-import random
 
 from src.controller.dto import AddFloorRequest, RenameFloorRequest, UpdateFloorLevelRequest, RemoveFloorRequest, \
     AddElementRequest, EditRoomRequest, MoveElementRequest, RemoveElementRequest
@@ -12,393 +12,383 @@ from src.view.hotel_configurator.components.hot_bar import HotBar
 from src.view.hotel_configurator.components.grid_canvas_widget import GridCanvas
 
 
-
 class HotelConfiguratorWindow(QMainWindow):
-    def __init__(self, on_back, controller):
+    """Window for configuring hotel floors and rooms."""
+    def __init__(self, onBack, controller):
         super().__init__()
-        self.on_back = on_back
+        self.onBack = onBack
         self.controller = controller
 
-        self.selected_floor = None
-        self.selected_room = None
+        self.selectedFloor = None
+        self.selectedRoom = None
 
-        self.setup_ui()
+        self.setupUi()
 
-
-    def setup_ui(self):
+    def setupUi(self):
         self.setWindowTitle("Hotel Configurator")
         self.resize(1200, 800)
 
-        self.main_widget = QWidget()
-        self.setCentralWidget(self.main_widget)
+        self.mainWidget = QWidget()
+        self.setCentralWidget(self.mainWidget)
 
-        self.grid_canvas = GridCanvas()
-        self.grid_canvas.elementDeleteRequested.connect(self.confirm_delete_element)
-        self.grid_canvas.elementMoved.connect(self.on_element_moved)
-        self.grid_canvas.roomSelected.connect(self.on_room_selected)
+        self.gridCanvas = GridCanvas()
+        self.gridCanvas.elementDeleteRequested.connect(self.handleDeleteElementClick)
+        self.gridCanvas.elementMoved.connect(self.handleElementMoved)
+        self.gridCanvas.roomSelected.connect(self.handleRoomSelected)
 
-        self.top_bar = TopBar([
-            {"label": "← Back", "callback": self.handle_back},
-            {"label": "↩ Undo", "callback": self.undo_action},
-            {"label": "↪ Redo", "callback": self.redo_action},
+        self.topBar = TopBar([
+            {"label": "← Back", "callback": self.handleBack},
+            {"label": "↩ Undo", "callback": self.undoAction},
+            {"label": "↪ Redo", "callback": self.redoAction},
         ])
-        self.update_undo_redo_buttons()
+        self.updateUndoRedoButtons()
 
-        self.side_bar = SideBar(
+        self.sideBar = SideBar(
             controller=self.controller,
-            on_floor_selected=self.on_floor_selected,
-            on_floors_reordered=self.on_floors_reordered,
-            on_add_floor=self.on_add_floor,
-            on_remove_floor=self.on_remove_floor,
-            on_update_floor_name=self.on_update_floor_name,
-            on_update_room=self.edit_room
+            onFloorSelected=self.handleFloorSelected,
+            onFloorsReordered=self.handleFloorsReordered,
+            onAddFloor=self.handleAddFloorClick,
+            onRemoveFloor=self.handleRemoveFloorClick,
+            onUpdateFloorName=self.handleUpdateFloorClick,
+            onUpdateRoom=self.handleUpdateRoomClick
         )
 
-        self.hot_bar = HotBar(
-            add_element_callback=self.add_element
+        self.hotBar = HotBar(
+            addElementCallback=self.handleAddElementClick
         )
 
-        self.layout = QVBoxLayout(self.main_widget)
+        self.layout = QVBoxLayout(self.mainWidget)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
-        self.layout.addWidget(self.grid_canvas)
+        self.layout.addWidget(self.gridCanvas)
 
-        self.top_bar.setParent(self.main_widget)
-        self.side_bar.setParent(self.main_widget)
-        self.hot_bar.setParent(self.main_widget)
+        self.topBar.setParent(self.mainWidget)
+        self.sideBar.setParent(self.mainWidget)
+        self.hotBar.setParent(self.mainWidget)
 
         self.resizeEvent(None)
 
+    def handleBack(self):
+        self.onBack()
 
-    def handle_back(self):
-        if self.on_back:
-            self.on_back()
-
-    def undo_action(self):
+    def undoAction(self):
         self.controller.undo()
-        self.update_undo_redo_buttons()
+        self.updateUndoRedoButtons()
 
-        self.side_bar.populate_floor_list()
-        self.ensure_selected_floor_exists()
-        floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-        connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-        self.grid_canvas.set_floor_elements(floor_grid, connections)
-        self.grid_canvas.select_element(None)
-        self.grid_canvas.update()
+        self.sideBar.populateFloorList()
+        self.ensureSelectedFloorExists()
+        floorGrid = self.controller.get_floor_grid(self.selectedFloor.db_id)
+        connections = self.controller.get_floor_connections(self.selectedFloor.db_id)
+        self.gridCanvas.setFloorElements(floorGrid, connections)
+        self.gridCanvas.selectElement(None)
+        self.gridCanvas.update()
 
-    def redo_action(self):
+    def redoAction(self):
         self.controller.redo()
-        self.update_undo_redo_buttons()
+        self.updateUndoRedoButtons()
 
-        self.side_bar.populate_floor_list()
-        self.ensure_selected_floor_exists()
-        floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-        connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-        self.grid_canvas.set_floor_elements(floor_grid, connections)
-        self.grid_canvas.select_element(None)
-        self.grid_canvas.update()
+        self.sideBar.populateFloorList()
+        self.ensureSelectedFloorExists()
+        floorGrid = self.controller.get_floor_grid(self.selectedFloor.db_id)
+        connections = self.controller.get_floor_connections(self.selectedFloor.db_id)
+        self.gridCanvas.setFloorElements(floorGrid, connections)
+        self.gridCanvas.selectElement(None)
+        self.gridCanvas.update()
 
-    def update_undo_redo_buttons(self):
-        self.top_bar.set_button_enabled("↩ Undo", self.controller.can_undo())
-        self.top_bar.set_button_enabled("↪ Redo", self.controller.can_redo())
+    def updateUndoRedoButtons(self):
+        self.topBar.setButtonEnabled("↩ Undo", self.controller.can_undo())
+        self.topBar.setButtonEnabled("↪ Redo", self.controller.can_redo())
 
+    def refreshGrid(self):
+        if self.selectedFloor is None:
+            self.gridCanvas.setFloorElements({}, [])
+            self.gridCanvas.selectElement(None)
+            self.gridCanvas.update()
+        else:
+            floorGrid = self.controller.get_floor_grid(self.selectedFloor.db_id)
+            connections = self.controller.get_floor_connections(self.selectedFloor.db_id)
+            self.gridCanvas.setFloorElements(floorGrid, connections)
+            self.gridCanvas.selectElement(None)
+            self.gridCanvas.update()
 
-    def ensure_selected_floor_exists(self):
+    def ensureSelectedFloorExists(self):
         floors = self.controller.get_all_floors()
         if not floors:
-            self.selected_floor = None
-            self.grid_canvas.clear_floor_elements()
+            self.selectedFloor = None
+            self.gridCanvas.clearFloorElements()
             return
 
-        selected_id = getattr(self.selected_floor, "db_id", None)
-        floor_ids = [f.db_id for f in floors]
-        if selected_id in floor_ids:
+        selectedId = getattr(self.selectedFloor, "db_id", None)
+        floorIds = [f.db_id for f in floors]
+        if selectedId in floorIds:
             return
 
-        sorted_floors = sorted(floors, key=lambda f: f.level, reverse=True)
-        self.selected_floor = sorted_floors[0]
-        self.side_bar.floor_list.setCurrentRow(0)
-        self.on_floor_selected(self.side_bar.floor_list.item(0))
+        sortedFloors = sorted(floors, key=lambda f: f.level, reverse=True)
+        self.selectedFloor = sortedFloors[0]
+        self.sideBar.floorList.setCurrentRow(0)
+        self.handleFloorSelected(self.sideBar.floorList.item(0))
 
     def resizeEvent(self, event):
         margin = 10
 
-        self.top_bar.setGeometry(
+        self.topBar.setGeometry(
             margin,
             margin,
             self.width() - 2 * margin,
-            self.top_bar.height()
+            self.topBar.height()
         )
 
-        top_margin = self.top_bar.height() + 2 * margin
+        topMargin = self.topBar.height() + 2 * margin
 
-        self.side_bar.setGeometry(
+        self.sideBar.setGeometry(
             margin,
-            top_margin,
-            self.side_bar.width(),
-            self.height() - top_margin - margin
+            topMargin,
+            self.sideBar.width(),
+            self.height() - topMargin - margin
         )
 
-        self.hot_bar.setGeometry(
-            self.side_bar.width() + 2 * margin,
-            self.height() - self.hot_bar.height() - margin,
-            self.width() - self.side_bar.width() - 3 * margin,
-            self.hot_bar.height()
+        self.hotBar.setGeometry(
+            self.sideBar.width() + 2 * margin,
+            self.height() - self.hotBar.height() - margin,
+            self.width() - self.sideBar.width() - 3 * margin,
+            self.hotBar.height()
         )
-
 
     # Floor CRUD
-    def on_floor_selected(self, item):
-        self.grid_canvas.select_element(None)
-        self.selected_floor = item.data(Qt.ItemDataRole.UserRole)
-        self.side_bar.floor_name_edit.setText(self.selected_floor.name)
-        self.side_bar.floor_name_edit.setPlaceholderText(self.selected_floor.name)
+    def handleFloorSelected(self, item):
+        self.gridCanvas.selectElement(None)
+        self.selectedFloor = item.data(Qt.ItemDataRole.UserRole)
+        self.sideBar.floorNameEdit.setText(self.selectedFloor.name)
+        self.sideBar.floorNameEdit.setPlaceholderText(self.selectedFloor.name)
         try:
-            floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-            connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-            self.grid_canvas.set_floor_elements(floor_grid, connections)
+            self.refreshGrid()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load floor elements: {str(e)}")
-            self.grid_canvas.clear_floor_elements()
+            self.gridCanvas.clearFloorElements()
 
-    def on_add_floor(self):
-        floor_name, ok = QInputDialog.getText(
+    def handleAddFloorClick(self):
+        floorName, ok = QInputDialog.getText(
             self, "Add New Floor", "Enter floor name:"
         )
 
         if not ok:
             return
 
-        if not floor_name:
+        if not floorName:
             QMessageBox.warning(self, "Warning", "Please enter floor name")
             return
 
         try:
-            self.grid_canvas.select_element(None)
-            req = AddFloorRequest(name=floor_name, level=self.side_bar.floor_list.count())
+            self.gridCanvas.selectElement(None)
+            req = AddFloorRequest(name=floorName, level=self.sideBar.floorList.count())
             self.controller.add_floor(req)
-            self.update_undo_redo_buttons()
-            self.side_bar.populate_floor_list()
+            self.updateUndoRedoButtons()
+            self.sideBar.populateFloorList()
             QMessageBox.information(self, "Success", "Floor added successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to add floor: {str(e)}")
             return
 
-    def on_floors_reordered(self):
+    def handleFloorsReordered(self):
         updates = []
-        for i in range(self.side_bar.floor_list.count()):
-            item = self.side_bar.floor_list.item(i)
+        for i in range(self.sideBar.floorList.count()):
+            item = self.sideBar.floorList.item(i)
             floor = item.data(Qt.ItemDataRole.UserRole)
-            new_level = self.side_bar.floor_list.count() - 1 - i
-            if floor.level != new_level:
-                updates.append((floor.db_id, new_level))
+            newLevel = self.sideBar.floorList.count() - 1 - i
+            if floor.level != newLevel:
+                updates.append((floor.db_id, newLevel))
 
-        for floor_id, level in updates:
+        for floorId, level in updates:
             try:
-                req = UpdateFloorLevelRequest(floor_id=floor_id, new_level=level)
+                req = UpdateFloorLevelRequest(floor_id=floorId, new_level=level)
                 self.controller.update_floor_level(req)
+
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to update floor order: {str(e)}")
                 return
+        self.updateUndoRedoButtons()
+        self.sideBar.populateFloorList()
 
-        self.side_bar.populate_floor_list()
-
-    def on_update_floor_name(self):
-        if not self.selected_floor:
+    def handleUpdateFloorClick(self):
+        if not self.selectedFloor:
             QMessageBox.warning(self, "Warning", "Please select a floor first")
             return
 
-        new_name = self.side_bar.floor_name_edit.text().strip()
-        if not new_name:
+        newName = self.sideBar.floorNameEdit.text().strip()
+        if not newName:
             QMessageBox.warning(self, "Warning", "Please enter floor name")
             return
 
-        old_name = self.selected_floor.name
-        if new_name == old_name:
+        oldName = self.selectedFloor.name
+        if newName == oldName:
             return
 
         try:
-            req = RenameFloorRequest(floor_id=self.selected_floor.db_id, new_name=new_name)
+            req = RenameFloorRequest(floor_id=self.selectedFloor.db_id, new_name=newName)
             self.controller.rename_floor(req)
-            self.update_undo_redo_buttons()
-            self.side_bar.populate_floor_list()
+            self.updateUndoRedoButtons()
+            self.sideBar.populateFloorList()
             QMessageBox.information(self, "Success", "Floor renamed successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to rename floor: {str(e)}")
 
-    def on_remove_floor(self):
-        if not self.selected_floor:
+    def handleRemoveFloorClick(self):
+        if not self.selectedFloor:
             QMessageBox.warning(self, "Warning", "Please select a floor first")
             return
 
-        num_rooms, num_reservations = self.controller.get_floor_number_of_rooms(self.selected_floor.db_id)
-        if num_rooms > 0:
+        numRooms, numReservations = self.controller.get_floor_number_of_rooms(self.selectedFloor.db_id)
+        if numRooms > 0:
             reply = QMessageBox.question(
                 self,
                 "Delete Floor",
-                f"This floor contains {num_rooms} room(s) and {num_reservations} reservation(s). Deleting it will remove all rooms and their reservations. Continue?",
+                f"This floor contains {numRooms} room(s) and {numReservations} reservation(s). Deleting it will remove all rooms and their reservations. Continue?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
             if reply != QMessageBox.StandardButton.Yes:
                 return
         try:
-            req = RemoveFloorRequest(floor_id=self.selected_floor.db_id)
+            req = RemoveFloorRequest(floor_id=self.selectedFloor.db_id)
             self.controller.remove_floor(req)
-            self.update_undo_redo_buttons()
-            self.side_bar.populate_floor_list()
-            self.grid_canvas.clear_floor_elements()
+            self.updateUndoRedoButtons()
+            self.sideBar.populateFloorList()
+            self.gridCanvas.clearFloorElements()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to remove floor: {str(e)}")
             return
 
+    # Element CRUD
+    def findFirstFreePosition(self):
+        floorGrid = self.controller.get_floor_grid(self.selectedFloor.db_id)
 
-
-    def find_first_free_position(self):
-        floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-
-        grid_size = self.grid_canvas.grid_size
-        for x in range(grid_size):
-            for y in range(grid_size):
-                if (x, y) not in floor_grid or floor_grid[(x, y)] is None:
+        gridSize = self.gridCanvas.gridSize
+        for x in range(gridSize):
+            for y in range(gridSize):
+                if (x, y) not in floorGrid or floorGrid[(x, y)] is None:
                     return (x, y)
         return None
 
-    def find_random_free_position(self):
-        floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
+    def findRandomFreePosition(self):
+        floorGrid = self.controller.get_floor_grid(self.selectedFloor.db_id)
 
-        free_positions = []
-        grid_size = self.grid_canvas.grid_size
-        for x in range(grid_size):
-            for y in range(grid_size):
-                if (x, y) not in floor_grid or floor_grid[(x, y)] is None:
-                    free_positions.append((x, y))
+        freePositions = []
+        gridSize = self.gridCanvas.gridSize
+        for x in range(gridSize):
+            for y in range(gridSize):
+                if (x, y) not in floorGrid or floorGrid[(x, y)] is None:
+                    freePositions.append((x, y))
 
-        if not free_positions:
+        if not freePositions:
             return None
 
-        return random.choice(free_positions)
+        return random.choice(freePositions)
 
+    def handleRoomSelected(self, room):
+        self.selectedRoom = room
+        self.sideBar.displayRoomDetails(room)
 
-
-    def on_room_selected(self, room):
-        self.selected_room = room
-        self.side_bar.display_room_details(room)
-
-    def add_element(self, element_type):
-        if not self.selected_floor:
+    def handleAddElementClick(self, elementType):
+        if not self.selectedFloor:
             QMessageBox.warning(self, "Warning", "Please select a floor first")
             return
 
-        position = self.find_first_free_position()
+        position = self.findFirstFreePosition()
         if not position:
             QMessageBox.warning(self, "Warning", "No free space available on this floor")
 
         try:
-            if element_type == "room":
+            if elementType == "room":
                 req = AddElementRequest(
-                    type="room", floor_id=self.selected_floor.db_id,
+                    type="room", floor_id=self.selectedFloor.db_id,
                     position=position, number="1",
                     capacity=2, price_per_night=100.0
                 )
-            elif element_type == "hallway":
+            elif elementType == "hallway":
                 req = AddElementRequest(
-                    type="hallway", floor_id=self.selected_floor.db_id,
+                    type="hallway", floor_id=self.selectedFloor.db_id,
                     position=position
                 )
-            elif element_type == "staircase":
+            elif elementType == "staircase":
                 req = AddElementRequest(
-                    type="staircase", floor_id=self.selected_floor.db_id,
+                    type="staircase", floor_id=self.selectedFloor.db_id,
                     position=position
                 )
             else:
                 raise ValueError("Invalid element type")
 
             self.controller.add_element(req)
-            self.update_undo_redo_buttons()
-            self.selected_floor = self.controller.get_floor(self.selected_floor.db_id)
-            floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-            connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-            self.grid_canvas.set_floor_elements(floor_grid, connections)
+            self.updateUndoRedoButtons()
+            self.selectedFloor = self.controller.get_floor(self.selectedFloor.db_id)
+            self.refreshGrid()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to add room: {str(e)}")
 
-
-    def edit_room(self):
-        if not self.selected_room:
+    def handleUpdateRoomClick(self):
+        if not self.selectedRoom:
             QMessageBox.warning(self, "Warning", "Please select a room first")
             return
 
         try:
-            number = self.side_bar.room_number_edit.text()
-            capacity_text = self.side_bar.room_capacity_edit.text()
-            price_text = self.side_bar.room_price_edit.text()
+            number = self.sideBar.roomNumberEdit.text()
+            capacityText = self.sideBar.roomCapacityEdit.text()
+            priceText = self.sideBar.roomPriceEdit.text()
 
             if not number:
                 QMessageBox.warning(self, "Warning", "Room number cannot be empty")
                 return
             try:
-                capacity = int(capacity_text)
+                capacity = int(capacityText)
                 if capacity <= 0:
                     raise ValueError("Capacity must be positive")
             except ValueError:
                 QMessageBox.warning(self, "Warning", "Capacity must be a positive number")
                 return
             try:
-                price = float(price_text)
+                price = float(priceText)
                 if price < 0:
                     raise ValueError("Price cannot be negative")
             except ValueError:
                 QMessageBox.warning(self, "Warning", "Price must be a valid number")
                 return
 
-            req = EditRoomRequest(self.selected_room.element_id, number, capacity, price)
+            req = EditRoomRequest(self.selectedRoom.elementId, number, capacity, price)
             self.controller.edit_room(req)
-            self.update_undo_redo_buttons()
-
-            floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-            connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-            self.grid_canvas.set_floor_elements(floor_grid, connections)
-            self.grid_canvas.select_element(None)
-            self.grid_canvas.update()
+            self.updateUndoRedoButtons()
+            self.refreshGrid()
 
             QMessageBox.information(self, "Success", "Room updated successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to update room: {str(e)}")
 
-    def on_element_moved(self, element_id, new_position):
+    def handleElementMoved(self, elementId, newPosition):
         try:
-            req = MoveElementRequest(element_id=element_id, floor_id=self.selected_floor.db_id, position=new_position)
+            req = MoveElementRequest(element_id=elementId, floor_id=self.selectedFloor.db_id, position=newPosition)
             self.controller.move_element(req)
-            self.update_undo_redo_buttons()
-            floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-            connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-            self.grid_canvas.set_floor_elements(floor_grid, connections)
-            self.grid_canvas.update()
+            self.updateUndoRedoButtons()
+            self.refreshGrid()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to move element: {str(e)}")
-            floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-            connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-            self.grid_canvas.set_floor_elements(floor_grid, connections)
-            self.grid_canvas.update()
+            self.refreshGrid()
 
-    def confirm_delete_element(self, element_widget):
-        element_id = element_widget.element_id
-        element = self.selected_floor.elements.get(element_id)
+    def handleDeleteElementClick(self, elementWidget):
+        elementId = elementWidget.elementId
+        self.selectedFloor = self.controller.get_floor(self.selectedFloor.db_id)
+        element = self.selectedFloor.elements.get(elementId)
 
         if not element:
             QMessageBox.critical(self, "Error", "Failed to find the corresponding FloorElement.")
             return
 
-        element_type = element.type.capitalize()
+        elementType = element.type.capitalize()
 
         if element.type == "room":
-            num_reservations = self.controller.get_room_number_of_reservations(element.db_id)
-            if num_reservations > 0:
+            numReservations = self.controller.get_room_number_of_reservations(element.db_id)
+            if numReservations > 0:
                 reply = QMessageBox.question(
                     self,
                     "Delete Room",
-                    f"This room has {num_reservations} reservation(s). Deleting it will remove all reservations. Continue?",
+                    f"This room has {numReservations} reservation(s). Deleting it will remove all reservations. Continue?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                     QMessageBox.StandardButton.No
                 )
@@ -408,16 +398,12 @@ class HotelConfiguratorWindow(QMainWindow):
         try:
             req = RemoveElementRequest(
                 element_id=element.db_id, type=element.type,
-                floor_id=self.selected_floor.db_id, position=element.position
+                floor_id=self.selectedFloor.db_id, position=element.position
             )
             self.controller.remove_element(req)
-            self.update_undo_redo_buttons()
-            floor_grid = self.controller.get_floor_grid(self.selected_floor.db_id)
-            connections = self.controller.get_floor_connections(self.selected_floor.db_id)
-            self.grid_canvas.set_floor_elements(floor_grid, connections)
-            self.grid_canvas.select_element(None)
-            self.grid_canvas.update()
+            self.updateUndoRedoButtons()
+            self.refreshGrid()
             if element.type == "room":
                 QMessageBox.information(self, "Success", f"Room successfully deleted!")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to delete {element_type.lower()}: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to delete {elementType.lower()}: {str(e)}")

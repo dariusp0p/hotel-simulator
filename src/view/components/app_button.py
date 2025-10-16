@@ -15,13 +15,13 @@ class AppButton(QWidget):
     def __init__(self, line1: str, line2: str):
         super().__init__()
 
-        self.base_text = f"{line1}\n{line2}" if line2 else line1
+        self.baseText = f"{line1}\n{line2}" if line2 else line1
         self.locked = True
 
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        self.button = QPushButton(self.base_text)
+        self.button = QPushButton(self.baseText)
         self.button.setEnabled(False)
         self.button.setStyleSheet(
             """
@@ -39,9 +39,9 @@ class AppButton(QWidget):
         )
         self.layout.addWidget(self.button)
 
-        self.lock_icon = QLabel(self)
-        self.lock_icon.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.lock_icon.setStyleSheet("background: transparent;")
+        self.lockIcon = QLabel(self)
+        self.lockIcon.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.lockIcon.setStyleSheet("background: transparent;")
 
         pixmap = QPixmap("src/view/assets/lock_icon.png")
         if pixmap.isNull():
@@ -49,7 +49,7 @@ class AppButton(QWidget):
         elif not pixmap.hasAlphaChannel():
             print("The image is not transparent. Use a PNG image with a alpha channel.")
         else:
-            self.lock_icon.setPixmap(
+            self.lockIcon.setPixmap(
                 pixmap.scaled(
                     70,
                     70,
@@ -58,15 +58,15 @@ class AppButton(QWidget):
                 )
             )
 
-        self.lock_icon.setFixedSize(70, 70)
-        self.lock_icon.setVisible(True)
-        self.lock_icon.raise_()
+        self.lockIcon.setFixedSize(70, 70)
+        self.lockIcon.setVisible(True)
+        self.lockIcon.raise_()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        x = self.button.x() + (self.button.width() - self.lock_icon.width()) // 2
-        y = self.button.y() + (self.button.height() - self.lock_icon.height()) // 2
-        self.lock_icon.move(x, y)
+        x = self.button.x() + (self.button.width() - self.lockIcon.width()) // 2
+        y = self.button.y() + (self.button.height() - self.lockIcon.height()) // 2
+        self.lockIcon.move(x, y)
 
     def lock(self):
         self.locked = True
@@ -82,8 +82,8 @@ class AppButton(QWidget):
             }
             """
         )
-        self.lock_icon.setVisible(True)
-        self.lock_icon.raise_()
+        self.lockIcon.setVisible(True)
+        self.lockIcon.raise_()
 
         blur = QGraphicsBlurEffect()
         blur.setBlurRadius(4)
@@ -106,10 +106,10 @@ class AppButton(QWidget):
             }
             """
         )
-        self.lock_icon.setVisible(False)
+        self.lockIcon.setVisible(False)
         self.button.setGraphicsEffect(None)
 
-    def is_locked(self):
+    def isLocked(self):
         return self.locked
 
     def connect(self, func):

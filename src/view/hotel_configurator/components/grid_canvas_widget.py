@@ -5,321 +5,296 @@ from PyQt6.QtGui import QPainter, QTransform, QWheelEvent, QColor, QPen
 from src.view.hotel_configurator.components.floor_element_widget import FloorElementWidget
 
 
-
 class GridCanvas(QWidget):
+    """Canvas widget for displaying and interacting with the hotel floor grid."""
     elementDeleteRequested = pyqtSignal(object)
     elementMoved = pyqtSignal(int, tuple)
     roomSelected = pyqtSignal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.grid_size = 10
-        self.cell_size = 50
-        self.scale_factor = 1.0
+        self.gridSize = 10
+        self.cellSize = 50
+        self.scaleFactor = 1.0
         self.offset = QPoint(
-            (self.width() - self.grid_size * self.cell_size) // 2,
-            (self.height() - self.grid_size * self.cell_size) // 2
+            (self.width() - self.gridSize * self.cellSize) // 2,
+            (self.height() - self.gridSize * self.cellSize) // 2
         )
 
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
-        self.last_mouse_pos = QPoint(0, 0)
-        self.is_panning = False
-        self.is_dragging = False
-        self.drag_offset = QPoint(0, 0)
-        self.hovered_element = None
+        self.lastMousePos = QPoint(0, 0)
+        self.isPanning = False
+        self.isDragging = False
+        self.dragOffset = QPoint(0, 0)
+        self.hoveredElement = None
 
         self.elements = []
         self.connections = []
-        self.element_positions = {}
+        self.elementPositions = {}
 
-        self.selected_element = None
+        self.selectedElement = None
 
-
-    def set_floor_elements(self, elements_dict, connections=None):
+    def setFloorElements(self, elementsDict, connections=None):
         self.elements = []
-        self.element_positions = {}
-        for pos, element in elements_dict.items():
+        self.elementPositions = {}
+        for pos, element in elementsDict.items():
             if element and pos:
                 if not isinstance(pos, tuple) or len(pos) != 2 or not all(isinstance(coord, int) for coord in pos):
                     continue
                 if element.position is None:
                     continue
-                element_widget = FloorElementWidget(
-                    element_type=element.type,
+                elementWidget = FloorElementWidget(
+                    elementType=element.type,
                     position=pos,
-                    element_id=element.db_id,
+                    elementId=element.db_id,
                     number=getattr(element, 'number', None),
                     capacity=getattr(element, 'capacity', None),
-                    price_per_night=getattr(element, 'price_per_night', None)
+                    pricePerNight=getattr(element, 'price_per_night', None)
                 )
-                self.elements.append(element_widget)
-                self.element_positions[element.db_id] = pos
+                self.elements.append(elementWidget)
+                self.elementPositions[element.db_id] = pos
         self.connections = connections or []
         self.update()
-        print("Connections passed to GridCanvas:", self.connections)
 
-    def clear_floor_elements(self):
+    def clearFloorElements(self):
         self.elements = []
         self.connections = []
-        self.selected_element = None
+        self.selectedElement = None
         self.update()
 
-    def select_element(self, element):
+    def selectElement(self, element):
         for el in self.elements:
             el.selected = False
 
-        self.selected_element = element
+        self.selectedElement = element
 
         if element:
             element.selected = True
-            if element.element_type == "room":
+            if element.elementType == "room":
                 self.roomSelected.emit(element)
             else:
                 self.roomSelected.emit(None)
         self.update()
 
-
-    def map_position_to_grid(self, pos):
+    def mapPositionToGrid(self, pos):
         transform = QTransform()
         transform.translate(self.offset.x(), self.offset.y())
-        transform.scale(self.scale_factor, self.scale_factor)
+        transform.scale(self.scaleFactor, self.scaleFactor)
 
-        inverse_transform, invertible = transform.inverted()
+        inverseTransform, invertible = transform.inverted()
         if not invertible:
             return None
 
-        grid_pos = inverse_transform.map(pos)
+        gridPos = inverseTransform.map(pos)
 
-        grid_x = int(grid_pos.x() / self.cell_size)
-        grid_y = int(grid_pos.y() / self.cell_size)
+        gridX = int(gridPos.x() / self.cellSize)
+        gridY = int(gridPos.y() / self.cellSize)
 
-        if 0 <= grid_x < self.grid_size and 0 <= grid_y < self.grid_size:
-            return grid_x, grid_y
+        if 0 <= gridX < self.gridSize and 0 <= gridY < self.gridSize:
+            return gridX, gridY
         return None
 
-
-    # EVENTS
+    # Events
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         painter.fillRect(self.rect(), QColor(245, 245, 245))
 
-        # Apply zoom and pan transformations
         transform = QTransform()
         transform.translate(self.offset.x(), self.offset.y())
-        transform.scale(self.scale_factor, self.scale_factor)
+        transform.scale(self.scaleFactor, self.scaleFactor)
         painter.setTransform(transform)
 
-        # Calculate grid dimensions
-        grid_width = self.grid_size * self.cell_size
-        grid_height = self.grid_size * self.cell_size
+        gridWidth = self.gridSize * self.cellSize
+        gridHeight = self.gridSize * self.cellSize
 
-        # Draw the grid background
-        painter.fillRect(0, 0, grid_width, grid_height, QColor(255, 255, 255))
+        painter.fillRect(0, 0, gridWidth, gridHeight, QColor(255, 255, 255))
 
-        # Draw grid border
         painter.setPen(QPen(QColor(50, 50, 50), 2))
-        painter.drawRect(0, 0, grid_width, grid_height)
+        painter.drawRect(0, 0, gridWidth, gridHeight)
 
-        # Draw grid lines
         painter.setPen(QPen(QColor(200, 200, 200)))
 
-        # Draw vertical lines
-        for i in range(1, self.grid_size):
-            x = i * self.cell_size
-            painter.drawLine(x, 0, x, grid_height)
+        for i in range(1, self.gridSize):
+            x = i * self.cellSize
+            painter.drawLine(x, 0, x, gridHeight)
 
-        # Draw horizontal lines
-        for i in range(1, self.grid_size):
-            y = i * self.cell_size
-            painter.drawLine(0, y, grid_width, y)
+        for i in range(1, self.gridSize):
+            y = i * self.cellSize
+            painter.drawLine(0, y, gridWidth, y)
 
         # Draw cell coordinates (for debugging)
         # painter.setPen(QPen(QColor(150, 150, 150)))
-        # for row in range(self.grid_size):
-        #     for col in range(self.grid_size):
-        #         x = col * self.cell_size
-        #         y = row * self.cell_size
+        # for row in range(self.gridSize):
+        #     for col in range(self.gridSize):
+        #         x = col * self.cellSize
+        #         y = row * self.cellSize
         #         painter.drawText(x + 5, y + 15, f"{col},{row}")
 
-
         for element in self.elements:
-            if element != self.selected_element:
-                element.draw_background(painter, self.cell_size)
-        if self.selected_element:
-            if not self.is_dragging:
-                self.selected_element.draw_background(painter, self.cell_size)
+            if element != self.selectedElement:
+                element.drawBackground(painter, self.cellSize)
+        if self.selectedElement:
+            if not self.isDragging:
+                self.selectedElement.drawBackground(painter, self.cellSize)
 
         if hasattr(self, 'connections'):
             pen = QPen(QColor(255, 150, 150), 2)
             painter.setPen(pen)
             for id1, id2 in self.connections:
-                pos1 = self.element_positions.get(id1)
-                pos2 = self.element_positions.get(id2)
+                pos1 = self.elementPositions.get(id1)
+                pos2 = self.elementPositions.get(id2)
                 if pos1 and pos2:
-                    x1 = pos1[0] * self.cell_size + self.cell_size // 2
-                    y1 = pos1[1] * self.cell_size + self.cell_size // 2
-                    x2 = pos2[0] * self.cell_size + self.cell_size // 2
-                    y2 = pos2[1] * self.cell_size + self.cell_size // 2
+                    x1 = pos1[0] * self.cellSize + self.cellSize // 2
+                    y1 = pos1[1] * self.cellSize + self.cellSize // 2
+                    x2 = pos2[0] * self.cellSize + self.cellSize // 2
+                    y2 = pos2[1] * self.cellSize + self.cellSize // 2
                     painter.drawLine(x1, y1, x2, y2)
 
         for element in self.elements:
-            if element != self.selected_element:
-                element.draw_text(painter, self.cell_size)
-        if self.selected_element:
-            if self.is_dragging:
-                mouse_pos = self.last_mouse_pos
+            if element != self.selectedElement:
+                element.drawText(painter, self.cellSize)
+        if self.selectedElement:
+            if self.isDragging:
+                mousePos = self.lastMousePos
                 transform = QTransform()
                 transform.translate(self.offset.x(), self.offset.y())
-                transform.scale(self.scale_factor, self.scale_factor)
-                inverse_transform, _ = transform.inverted()
-                scene_pos = inverse_transform.map(mouse_pos)
-                self.selected_element.draw_background(painter, self.cell_size, scene_pos)
-                self.selected_element.draw_text(painter, self.cell_size, scene_pos)
+                transform.scale(self.scaleFactor, self.scaleFactor)
+                inverseTransform, _ = transform.inverted()
+                scenePos = inverseTransform.map(mousePos)
+                self.selectedElement.drawBackground(painter, self.cellSize, scenePos)
+                self.selectedElement.drawText(painter, self.cellSize, scenePos)
             else:
-                self.selected_element.draw_text(painter, self.cell_size)
-
+                self.selectedElement.drawText(painter, self.cellSize)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             pos = event.position().toPoint()
-            grid_pos = self.map_position_to_grid(pos)
+            gridPos = self.mapPositionToGrid(pos)
 
-            clicked_on_element = False
+            clickedOnElement = False
             for element in self.elements:
-                if element.position == grid_pos:
-                    if element.is_delete_button_clicked(pos, self.cell_size, self.offset, self.scale_factor):
+                if element.position == gridPos:
+                    if element.isDeleteButtonClicked(pos, self.cellSize, self.offset, self.scaleFactor):
                         self.elementDeleteRequested.emit(element)
                         return
 
-                    self.select_element(element)
-                    self.is_dragging = True
-                    self.last_mouse_pos = pos
+                    self.selectElement(element)
+                    self.isDragging = True
+                    self.lastMousePos = pos
                     self.setCursor(Qt.CursorShape.ClosedHandCursor)
-                    clicked_on_element = True
+                    clickedOnElement = True
                     break
 
-            if not clicked_on_element:
-                self.select_element(None)
-                self.is_panning = True
-                self.last_mouse_pos = pos
+            if not clickedOnElement:
+                self.selectElement(None)
+                self.isPanning = True
+                self.lastMousePos = pos
                 self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseMoveEvent(self, event):
         pos = event.position().toPoint()
-        grid_pos = self.map_position_to_grid(pos)
+        gridPos = self.mapPositionToGrid(pos)
 
-        # Check if the mouse is over an element
-        hovered_element = None
+        hoveredElement = None
         for element in self.elements:
-            if element.position == grid_pos:
-                hovered_element = element
+            if element.position == gridPos:
+                hoveredElement = element
                 break
 
-        # Update hover state
-        if self.hovered_element != hovered_element:
-            if self.hovered_element:
-                self.hovered_element.hovered = False
-            self.hovered_element = hovered_element
-            if self.hovered_element:
-                self.hovered_element.hovered = True
+        if self.hoveredElement != hoveredElement:
+            if self.hoveredElement:
+                self.hoveredElement.hovered = False
+            self.hoveredElement = hoveredElement
+            if self.hoveredElement:
+                self.hoveredElement.hovered = True
             self.update()
-        if self.hovered_element and self.is_dragging:
-            self.hovered_element.hovered = False
-            self.hovered_element = None
+        if self.hoveredElement and self.isDragging:
+            self.hoveredElement.hovered = False
+            self.hoveredElement = None
             self.update()
 
-
-        # Handle dragging
-        if self.is_dragging and self.selected_element:
-            # Validate position
-            if not self.selected_element.position or not isinstance(self.selected_element.position, tuple) or len(
-                    self.selected_element.position) != 2:
-                self.is_dragging = False
-                self.selected_element = None
+        if self.isDragging and self.selectedElement:
+            if not self.selectedElement.position or not isinstance(self.selectedElement.position, tuple) or len(
+                    self.selectedElement.position) != 2:
+                self.isDragging = False
+                self.selectedElement = None
                 self.setCursor(Qt.CursorShape.ArrowCursor)
                 return
 
-            # Calculate the delta movement
-            delta = event.position().toPoint() - self.last_mouse_pos
-            self.last_mouse_pos = event.position().toPoint()
-
-            # Update drag offset for smooth visual movement
-            self.drag_offset += delta
-
-            # Update visually without changing the grid position yet
+            delta = event.position().toPoint() - self.lastMousePos
+            self.lastMousePos = event.position().toPoint()
+            self.dragOffset += delta
             self.update()
 
-        # Handle panning
-        elif self.is_panning:
-            delta = event.position().toPoint() - self.last_mouse_pos
+        elif self.isPanning:
+            delta = event.position().toPoint() - self.lastMousePos
             self.offset += delta
-            self.last_mouse_pos = event.position().toPoint()
+            self.lastMousePos = event.position().toPoint()
             self.update()
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            if self.is_dragging and self.selected_element:
-                grid_pos = self.map_position_to_grid(event.position().toPoint())
-                position_is_free = True
-                if grid_pos:
+            if self.isDragging and self.selectedElement:
+                gridPos = self.mapPositionToGrid(event.position().toPoint())
+                positionIsFree = True
+                if gridPos:
                     for element in self.elements:
-                        if element == self.selected_element:
+                        if element == self.selectedElement:
                             continue
-                        if element.position == grid_pos:
-                            position_is_free = False
+                        if element.position == gridPos:
+                            positionIsFree = False
                             break
-                if grid_pos and position_is_free:
-                    self.selected_element.position = grid_pos
-                    self.elementMoved.emit(self.selected_element.element_id, grid_pos)
+                if gridPos and positionIsFree:
+                    self.selectedElement.position = gridPos
+                    self.elementMoved.emit(self.selectedElement.elementId, gridPos)
 
-                self.drag_offset = QPoint(0, 0)
-                self.is_dragging = False
+                self.dragOffset = QPoint(0, 0)
+                self.isDragging = False
                 self.setCursor(Qt.CursorShape.ArrowCursor)
                 self.update()
-            elif self.is_panning:
-                self.is_panning = False
+            elif self.isPanning:
+                self.isPanning = False
                 self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def leaveEvent(self, event):
-        if self.hovered_element:
-            self.hovered_element.hovered = False
-            self.hovered_element = None
+        if self.hoveredElement:
+            self.hoveredElement.hovered = False
+            self.hoveredElement = None
             self.update()
 
     def wheelEvent(self, event: QWheelEvent):
         delta = event.angleDelta().y()
-        zoom_factor = 1.1 if delta > 0 else 0.9
+        zoomFactor = 1.1 if delta > 0 else 0.9
 
-        if 0.2 <= self.scale_factor * zoom_factor <= 3.0:
-            old_pos = event.position()
+        if 0.2 <= self.scaleFactor * zoomFactor <= 3.0:
+            oldPos = event.position()
 
             transform = QTransform()
             transform.translate(self.offset.x(), self.offset.y())
-            transform.scale(self.scale_factor, self.scale_factor)
+            transform.scale(self.scaleFactor, self.scaleFactor)
 
-            inverse_transform, _ = transform.inverted()
-            scene_pos = inverse_transform.map(old_pos)
+            inverseTransform, _ = transform.inverted()
+            scenePos = inverseTransform.map(oldPos)
 
-            self.scale_factor *= zoom_factor
+            self.scaleFactor *= zoomFactor
 
-            new_transform = QTransform()
-            new_transform.translate(self.offset.x(), self.offset.y())
-            new_transform.scale(self.scale_factor, self.scale_factor)
+            newTransform = QTransform()
+            newTransform.translate(self.offset.x(), self.offset.y())
+            newTransform.scale(self.scaleFactor, self.scaleFactor)
 
-            new_scene_pos = new_transform.map(scene_pos)
-            delta_pos = new_scene_pos - old_pos
+            newScenePos = newTransform.map(scenePos)
+            deltaPos = newScenePos - oldPos
 
-            self.offset -= delta_pos.toPoint()
-
+            self.offset -= deltaPos.toPoint()
             self.update()
 
     def resizeEvent(self, event):
         self.offset = QPoint(
-            (self.width() - self.grid_size * self.cell_size) // 2,
-            (self.height() - self.grid_size * self.cell_size) // 2
+            (self.width() - self.gridSize * self.cellSize) // 2,
+            (self.height() - self.gridSize * self.cellSize) // 2
         )
         self.update()

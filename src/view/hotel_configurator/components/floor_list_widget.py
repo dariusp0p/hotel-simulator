@@ -2,8 +2,8 @@ from PyQt6.QtWidgets import QListWidget
 from PyQt6.QtCore import pyqtSignal
 
 
-
 class FloorListWidget(QListWidget):
+    """Custom QListWidget to display and reorder floors."""
     floorsReordered = pyqtSignal()
 
     def __init__(self, parent=None):

@@ -9,10 +9,10 @@ class CustomSwitch(QAbstractButton):
         super().__init__(parent)
         self.setCheckable(True)
         self._margin = 3
-        self._handle_radius = 12
-        self._bg_color = QColor("#777")
-        self._checked_color = QColor("#00aa00")
-        self._handle_color = QColor("white")
+        self._handleRadius = 12
+        self._bgColor = QColor("#777")
+        self._checkedColor = QColor("#00aa00")
+        self._handleColor = QColor("white")
         self._offset = self._margin
         self._anim = QPropertyAnimation(self, b"offset", self)
         self._anim.setDuration(120)
@@ -30,25 +30,25 @@ class CustomSwitch(QAbstractButton):
         radius = rect.height() // 2
 
         painter.setBrush(
-            QBrush(self._checked_color if self.isChecked() else self._bg_color)
+            QBrush(self._checkedColor if self.isChecked() else self._bgColor)
         )
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(rect, radius, radius)
 
-        handle_radius = radius - self._margin
-        diameter = 2 * handle_radius
+        handleRadius = radius - self._margin
+        diameter = 2 * handleRadius
         x = self._offset
         y = (self.height() - diameter) // 2
         painter.drawEllipse(int(x), int(y), int(diameter), int(diameter))
 
-        painter.setBrush(QBrush(self._handle_color))
+        painter.setBrush(QBrush(self._handleColor))
         painter.drawEllipse(int(x), int(y), int(diameter), int(diameter))
 
     def resizeEvent(self, event):
         self._offset = (
             self._margin
             if not self.isChecked()
-            else self.width() - 2 * self._handle_radius - self._margin
+            else self.width() - 2 * self._handleRadius - self._margin
         )
         self.update()
 
@@ -59,7 +59,7 @@ class CustomSwitch(QAbstractButton):
         super().setChecked(checked)
         start = self._offset
         end = (
-            self.width() - self._handle_radius * 2 + self._margin / 2
+            self.width() - self._handleRadius * 2 + self._margin / 2
             if checked
             else self._margin
         )
@@ -68,11 +68,11 @@ class CustomSwitch(QAbstractButton):
         self._anim.setEndValue(end)
         self._anim.start()
 
-    def get_offset(self):
+    def getOffset(self):
         return self._offset
 
-    def set_offset(self, value):
+    def setOffset(self, value):
         self._offset = value
         self.update()
 
-    offset = pyqtProperty(float, fget=get_offset, fset=set_offset)
+    offset = pyqtProperty(float, fget=getOffset, fset=setOffset)

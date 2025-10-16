@@ -3,9 +3,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 
 
-
 class HotBar(QWidget):
-    def __init__(self, add_element_callback, parent=None):
+    """A horizontal toolbar with buttons to add rooms, hallways, and staircases."""
+    def __init__(self, addElementCallback, parent=None):
         super().__init__(parent)
         self.setFixedHeight(60)
         self.setAutoFillBackground(True)
@@ -19,35 +19,35 @@ class HotBar(QWidget):
 
         layout.addStretch()
 
-        add_room_btn = QPushButton("Add Room")
-        add_room_btn.setFixedHeight(40)
-        add_room_btn.setStyleSheet(
+        addRoomBtn = QPushButton("Add Room")
+        addRoomBtn.setFixedHeight(40)
+        addRoomBtn.setStyleSheet(
             "QPushButton {background-color: #4a6ea9; color: white; border: none; font-weight: bold; padding: 8px;} "
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
-        add_room_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_room_btn.clicked.connect(lambda: add_element_callback("room"))
+        addRoomBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        addRoomBtn.clicked.connect(lambda: addElementCallback("room"))
 
-        add_hallway_btn = QPushButton("Add Hallway")
-        add_hallway_btn.setFixedHeight(40)
-        add_hallway_btn.setStyleSheet(
+        addHallwayBtn = QPushButton("Add Hallway")
+        addHallwayBtn.setFixedHeight(40)
+        addHallwayBtn.setStyleSheet(
             "QPushButton {background-color: #4a6ea9; color: white; border: none; font-weight: bold; padding: 8px;} "
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
-        add_hallway_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_hallway_btn.clicked.connect(lambda: add_element_callback("hallway"))
+        addHallwayBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        addHallwayBtn.clicked.connect(lambda: addElementCallback("hallway"))
 
-        add_staircase_btn = QPushButton("Add Staircase")
-        add_staircase_btn.setFixedHeight(40)
-        add_staircase_btn.setStyleSheet(
+        addStaircaseBtn = QPushButton("Add Staircase")
+        addStaircaseBtn.setFixedHeight(40)
+        addStaircaseBtn.setStyleSheet(
             "QPushButton {background-color: #4a6ea9; color: white; border: none; font-weight: bold; padding: 8px;} "
             "QPushButton:hover {background-color: #5a7eb9;}"
         )
-        add_staircase_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_staircase_btn.clicked.connect(lambda: add_element_callback("staircase"))
+        addStaircaseBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        addStaircaseBtn.clicked.connect(lambda: addElementCallback("staircase"))
 
-        layout.addWidget(add_room_btn)
-        layout.addWidget(add_hallway_btn)
-        layout.addWidget(add_staircase_btn)
+        layout.addWidget(addRoomBtn)
+        layout.addWidget(addHallwayBtn)
+        layout.addWidget(addStaircaseBtn)
 
         layout.addStretch()
