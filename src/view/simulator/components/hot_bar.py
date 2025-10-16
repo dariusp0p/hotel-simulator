@@ -5,15 +5,16 @@ from PyQt6.QtGui import QColor, QFont
 
 
 class HotBar(QWidget):
-    date_changed = pyqtSignal(QDate)
-    speed_changed = pyqtSignal(float)
+    """Hot bar with date display, simulation controls, and speed control."""
+    dateChanged = pyqtSignal(QDate)
+    speedChanged = pyqtSignal(float)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.current_date = QDate.currentDate()
-        self.setup_ui()
+        self.currentDate = QDate.currentDate()
+        self.setupUi()
 
-    def setup_ui(self):
+    def setupUi(self):
         self.setFixedHeight(50)
         self.setAutoFillBackground(True)
 
@@ -26,87 +27,87 @@ class HotBar(QWidget):
         layout.setSpacing(10)
 
         # Current date button (left) - styled like a label but clickable
-        self.date_btn = QPushButton(f"Current Date: {self.current_date.toString('yyyy-MM-dd')}")
-        self.date_btn.setStyleSheet("QPushButton {color: white; font-weight: bold; "
-                                    "border: 1px solid #777; padding: 5px 10px; "
-                                    "background-color: #555;} "
-                                    "QPushButton:hover {background-color: #666;}")
-        self.date_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.date_btn.clicked.connect(self.show_date_picker)
-        layout.addWidget(self.date_btn)
+        self.dateBtn = QPushButton(f"Current Date: {self.currentDate.toString('yyyy-MM-dd')}")
+        self.dateBtn.setStyleSheet("QPushButton {color: white; font-weight: bold; "
+                                   "border: 1px solid #777; padding: 5px 10px; "
+                                   "background-color: #555;} "
+                                   "QPushButton:hover {background-color: #666;}")
+        self.dateBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.dateBtn.clicked.connect(self.showDatePicker)
+        layout.addWidget(self.dateBtn)
 
         # Add spacer
         layout.addStretch()
 
         # Simulation control buttons - base style
-        btn_style = (
+        btnStyle = (
             "QPushButton {color: white; border: none; "
             "font-weight: bold; padding: 8px; min-width: 80px;} "
         )
 
         # 1 Day Back button
-        self.day_back_btn = QPushButton("◀ 1 Day")
-        self.day_back_btn.setStyleSheet(btn_style + "QPushButton {background-color: #4a6ea9;} "
-                                                    "QPushButton:hover {background-color: #5a7eb9;}")
-        self.day_back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        layout.addWidget(self.day_back_btn)
+        self.dayBackBtn = QPushButton("◀ 1 Day")
+        self.dayBackBtn.setStyleSheet(btnStyle + "QPushButton {background-color: #4a6ea9;} "
+                                               "QPushButton:hover {background-color: #5a7eb9;}")
+        self.dayBackBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        layout.addWidget(self.dayBackBtn)
 
         # Stop button (red with square symbol) - switched order
-        self.stop_btn = QPushButton("■ Stop")
-        self.stop_btn.setStyleSheet(btn_style + "QPushButton {background-color: #b22222;} "
-                                                "QPushButton:hover {background-color: #d32f2f;}")
-        self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        layout.addWidget(self.stop_btn)
+        self.stopBtn = QPushButton("■ Stop")
+        self.stopBtn.setStyleSheet(btnStyle + "QPushButton {background-color: #b22222;} "
+                                             "QPushButton:hover {background-color: #d32f2f;}")
+        self.stopBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        layout.addWidget(self.stopBtn)
 
         # Start button (green)
-        self.start_btn = QPushButton("▶ Start")
-        self.start_btn.setStyleSheet(btn_style + "QPushButton {background-color: #2e8b57;} "
-                                                 "QPushButton:hover {background-color: #3ba968;}")
-        self.start_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        layout.addWidget(self.start_btn)
+        self.startBtn = QPushButton("▶ Start")
+        self.startBtn.setStyleSheet(btnStyle + "QPushButton {background-color: #2e8b57;} "
+                                              "QPushButton:hover {background-color: #3ba968;}")
+        self.startBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        layout.addWidget(self.startBtn)
 
         # 1 Day Forward button
-        self.day_forward_btn = QPushButton("1 Day ▶")
-        self.day_forward_btn.setStyleSheet(btn_style + "QPushButton {background-color: #4a6ea9;} "
-                                                       "QPushButton:hover {background-color: #5a7eb9;}")
-        self.day_forward_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        layout.addWidget(self.day_forward_btn)
+        self.dayForwardBtn = QPushButton("1 Day ▶")
+        self.dayForwardBtn.setStyleSheet(btnStyle + "QPushButton {background-color: #4a6ea9;} "
+                                                   "QPushButton:hover {background-color: #5a7eb9;}")
+        self.dayForwardBtn.setCursor(Qt.CursorShape.PointingHandCursor)
+        layout.addWidget(self.dayForwardBtn)
 
         # Add spacer
         layout.addStretch()
 
         # Speed control (right)
-        self.speed_label = QLabel("Speed:")
-        self.speed_label.setStyleSheet("color: white;")
-        layout.addWidget(self.speed_label)
+        self.speedLabel = QLabel("Speed:")
+        self.speedLabel.setStyleSheet("color: white;")
+        layout.addWidget(self.speedLabel)
 
-        self.speed_combo = QComboBox()
-        self.speed_combo.addItems(["0.5x", "1x", "1.5x", "2x", "5x"])
-        self.speed_combo.setCurrentIndex(1)  # Default to 1x
-        self.speed_combo.setStyleSheet("background-color: #555;")
-        self.speed_combo.currentIndexChanged.connect(self.on_speed_changed)
-        layout.addWidget(self.speed_combo)
+        self.speedCombo = QComboBox()
+        self.speedCombo.addItems(["0.5x", "1x", "1.5x", "2x", "5x"])
+        self.speedCombo.setCurrentIndex(1)  # Default to 1x
+        self.speedCombo.setStyleSheet("background-color: #555;")
+        self.speedCombo.currentIndexChanged.connect(self.onSpeedChanged)
+        layout.addWidget(self.speedCombo)
 
-    def show_date_picker(self):
+    def showDatePicker(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Select Date")
         layout = QVBoxLayout(dialog)
 
         calendar = QCalendarWidget()
-        calendar.setSelectedDate(self.current_date)
-        calendar.clicked.connect(lambda date: self.update_date(date, dialog))
+        calendar.setSelectedDate(self.currentDate)
+        calendar.clicked.connect(lambda date: self.updateDate(date, dialog))
 
         layout.addWidget(calendar)
         dialog.setModal(True)
         dialog.exec()
 
-    def update_date(self, date, dialog):
-        self.current_date = date
-        self.date_btn.setText(f"Current Date: {date.toString('yyyy-MM-dd')}")
-        self.date_changed.emit(date)
+    def updateDate(self, date, dialog):
+        self.currentDate = date
+        self.dateBtn.setText(f"Current Date: {date.toString('yyyy-MM-dd')}")
+        self.dateChanged.emit(date)
         dialog.accept()
 
-    def on_speed_changed(self, index):
-        speed_text = self.speed_combo.currentText()
-        speed_value = float(speed_text.replace('x', ''))
-        self.speed_changed.emit(speed_value)
+    def onSpeedChanged(self, index):
+        speedText = self.speedCombo.currentText()
+        speedValue = float(speedText.replace('x', ''))
+        self.speedChanged.emit(speedValue)

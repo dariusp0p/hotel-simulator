@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 
 
 class BottomLeftPanel(QWidget):
+    """Bottom-left panel with 3D hotel structure visualization."""
     def __init__(self, controller, parent=None):
         super().__init__(parent)
         self.controller = controller
-        self.setup_ui()
+        self.setupUi()
 
-    def setup_ui(self):
+    def setupUi(self):
         self.setAutoFillBackground(True)
 
         palette = self.palette()
@@ -53,32 +54,32 @@ class BottomLeftPanel(QWidget):
 
         for floor in floors:
             z = floor.level
-            floor_grid = self.controller.get_floor_grid(floor.db_id)
+            floorGrid = self.controller.get_floor_grid(floor.db_id)
 
-            for position, element in floor_grid.items():
+            for position, element in floorGrid.items():
                 if element and position:
                     x, y = position
                     pos[element.db_id] = (x, y, z)
                     elements[element.db_id] = element
 
-        all_connections = self.controller.get_all_connections()
+        allConnections = self.controller.get_all_connections()
 
-        for el_id, (x, y, z) in pos.items():
-            element = elements.get(el_id)
+        for elId, (x, y, z) in pos.items():
+            element = elements.get(elId)
 
             if not element:
                 continue
 
             if element.type == "room":
                 ax.scatter(x, y, z, s=120, c="blue")
-                room_number = getattr(element, 'number', '?')
-                ax.text(x, y, z, f"{room_number}", color="black")  # Higher zorder ensures text is on top
+                roomNumber = getattr(element, 'number', '?')
+                ax.text(x, y, z, f"{roomNumber}", color="black")  # Higher zorder ensures text is on top
             elif element.type == "hallway":
                 ax.scatter(x, y, z, s=20, c="darkgray")
             elif element.type == "staircase":
                 ax.scatter(x, y, z, s=40, c="yellow")
 
-        for u, v in all_connections:
+        for u, v in allConnections:
             if u in pos and v in pos:
                 x = [pos[u][0], pos[v][0]]
                 y = [pos[u][1], pos[v][1]]

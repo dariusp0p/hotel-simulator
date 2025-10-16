@@ -5,13 +5,14 @@ from PyQt6.QtGui import QColor, QFont
 
 
 class TopLeftPanel(QWidget):
-    def __init__(self, parent=None, controller=None, generate_reservations_callback=None):
+    """Top-left panel with hotel stats and reservation generator."""
+    def __init__(self, parent=None, controller=None, generateReservationsCallback=None):
         super().__init__(parent)
-        self.generate_reservations_callback = generate_reservations_callback
+        self.generateReservationsCallback = generateReservationsCallback
         self.controller = controller
-        self.setup_ui()
+        self.setupUi()
 
-    def setup_ui(self):
+    def setupUi(self):
         self.setAutoFillBackground(True)
 
         palette = self.palette()
@@ -23,176 +24,174 @@ class TopLeftPanel(QWidget):
         layout.setSpacing(5)  # Reduced spacing overall
 
         # Hotel Stats Section
-        stats_title = QLabel("Hotel Statistics")
-        stats_title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
-        stats_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        stats_title.setStyleSheet("color: white;")
+        statsTitle = QLabel("Hotel Statistics")
+        statsTitle.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        statsTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        statsTitle.setStyleSheet("color: white;")
 
-        stats_separator = QFrame()
-        stats_separator.setFrameShape(QFrame.Shape.HLine)
-        stats_separator.setFrameShadow(QFrame.Shadow.Sunken)
-        stats_separator.setStyleSheet("background-color: #777;")
+        statsSeparator = QFrame()
+        statsSeparator.setFrameShape(QFrame.Shape.HLine)
+        statsSeparator.setFrameShadow(QFrame.Shadow.Sunken)
+        statsSeparator.setStyleSheet("background-color: #777;")
 
-        layout.addWidget(stats_title)
-        layout.addWidget(stats_separator)
+        layout.addWidget(statsTitle)
+        layout.addWidget(statsSeparator)
 
         # Stats content
-        stats_content = QWidget()
-        grid_layout = QGridLayout(stats_content)
-        grid_layout.setContentsMargins(0, 0, 0, 0)  # Remove internal margins
-        grid_layout.setSpacing(8)
+        statsContent = QWidget()
+        gridLayout = QGridLayout(statsContent)
+        gridLayout.setContentsMargins(0, 0, 0, 0)  # Remove internal margins
+        gridLayout.setSpacing(8)
 
         # Create labels with placeholders
-        label_style = "color: white;"
-        value_style = "color: #aaa; font-weight: bold;"
+        labelStyle = "color: white;"
+        valueStyle = "color: #aaa; font-weight: bold;"
 
         # Row 1: Floors
-        floors_label = QLabel("Floors:")
-        floors_label.setStyleSheet(label_style)
-        self.floors_value = QLabel("0")
-        self.floors_value.setStyleSheet(value_style)
+        floorsLabel = QLabel("Floors:")
+        floorsLabel.setStyleSheet(labelStyle)
+        self.floorsValue = QLabel("0")
+        self.floorsValue.setStyleSheet(valueStyle)
 
         # Row 2: Rooms
-        rooms_label = QLabel("Total Rooms:")
-        rooms_label.setStyleSheet(label_style)
-        self.rooms_value = QLabel("0")
-        self.rooms_value.setStyleSheet(value_style)
+        roomsLabel = QLabel("Total Rooms:")
+        roomsLabel.setStyleSheet(labelStyle)
+        self.roomsValue = QLabel("0")
+        self.roomsValue.setStyleSheet(valueStyle)
 
         # Row 3: Reservations
-        reservations_label = QLabel("Total Reservations:")
-        reservations_label.setStyleSheet(label_style)
-        self.reservations_value = QLabel("0")
-        self.reservations_value.setStyleSheet(value_style)
+        reservationsLabel = QLabel("Total Reservations:")
+        reservationsLabel.setStyleSheet(labelStyle)
+        self.reservationsValue = QLabel("0")
+        self.reservationsValue.setStyleSheet(valueStyle)
 
         # Row 4: Income
-        income_label = QLabel("Generated Income:")
-        income_label.setStyleSheet(label_style)
-        self.income_value = QLabel("$0")
-        self.income_value.setStyleSheet(value_style)
+        incomeLabel = QLabel("Generated Income:")
+        incomeLabel.setStyleSheet(labelStyle)
+        self.incomeValue = QLabel("$0")
+        self.incomeValue.setStyleSheet(valueStyle)
 
         # Add to grid
-        grid_layout.addWidget(floors_label, 0, 0)
-        grid_layout.addWidget(self.floors_value, 0, 1)
-        grid_layout.addWidget(rooms_label, 1, 0)
-        grid_layout.addWidget(self.rooms_value, 1, 1)
-        grid_layout.addWidget(reservations_label, 2, 0)
-        grid_layout.addWidget(self.reservations_value, 2, 1)
-        grid_layout.addWidget(income_label, 3, 0)
-        grid_layout.addWidget(self.income_value, 3, 1)
+        gridLayout.addWidget(floorsLabel, 0, 0)
+        gridLayout.addWidget(self.floorsValue, 0, 1)
+        gridLayout.addWidget(roomsLabel, 1, 0)
+        gridLayout.addWidget(self.roomsValue, 1, 1)
+        gridLayout.addWidget(reservationsLabel, 2, 0)
+        gridLayout.addWidget(self.reservationsValue, 2, 1)
+        gridLayout.addWidget(incomeLabel, 3, 0)
+        gridLayout.addWidget(self.incomeValue, 3, 1)
 
-        layout.addWidget(stats_content)
+        layout.addWidget(statsContent)
 
         # Add spacing between sections
         layout.addSpacing(15)
 
         # Reservation Generator Section
-        gen_title = QLabel("Reservation Generator")
-        gen_title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
-        gen_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        gen_title.setStyleSheet("color: white;")
+        genTitle = QLabel("Reservation Generator")
+        genTitle.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        genTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        genTitle.setStyleSheet("color: white;")
 
-        gen_separator = QFrame()
-        gen_separator.setFrameShape(QFrame.Shape.HLine)
-        gen_separator.setFrameShadow(QFrame.Shadow.Sunken)
-        gen_separator.setStyleSheet("background-color: #777;")
+        genSeparator = QFrame()
+        genSeparator.setFrameShape(QFrame.Shape.HLine)
+        genSeparator.setFrameShadow(QFrame.Shadow.Sunken)
+        genSeparator.setStyleSheet("background-color: #777;")
 
-        layout.addWidget(gen_title)
-        layout.addWidget(gen_separator)
-
-        # Rest of the code remains unchanged
+        layout.addWidget(genTitle)
+        layout.addWidget(genSeparator)
 
         # Generator content
-        gen_content = QWidget()
-        gen_layout = QVBoxLayout(gen_content)
-        gen_layout.setContentsMargins(0, 0, 0, 0)  # Remove internal margins
-        gen_layout.setSpacing(10)
+        genContent = QWidget()
+        genLayout = QVBoxLayout(genContent)
+        genLayout.setContentsMargins(0, 0, 0, 0)  # Remove internal margins
+        genLayout.setSpacing(10)
 
         # Date range selectors
-        date_label_style = "color: white;"
-        date_edit_style = "background-color: #555; color: white;"
+        dateLabelStyle = "color: white;"
+        dateEditStyle = "background-color: #555; color: white;"
 
         # From date
-        from_layout = QHBoxLayout()
-        from_label = QLabel("From:")
-        from_label.setStyleSheet(date_label_style)
-        from_date = QDateEdit()
-        from_date.setDate(QDate.currentDate())
-        from_date.setCalendarPopup(True)
-        from_date.setStyleSheet(date_edit_style)
-        from_layout.addWidget(from_label)
-        from_layout.addWidget(from_date, 1)
+        fromLayout = QHBoxLayout()
+        fromLabel = QLabel("From:")
+        fromLabel.setStyleSheet(dateLabelStyle)
+        fromDate = QDateEdit()
+        fromDate.setDate(QDate.currentDate())
+        fromDate.setCalendarPopup(True)
+        fromDate.setStyleSheet(dateEditStyle)
+        fromLayout.addWidget(fromLabel)
+        fromLayout.addWidget(fromDate, 1)
 
         # To date
-        to_layout = QHBoxLayout()
-        to_label = QLabel("To:")
-        to_label.setStyleSheet(date_label_style)
-        to_date = QDateEdit()
-        to_date.setDate(QDate.currentDate().addDays(7))
-        to_date.setCalendarPopup(True)
-        to_date.setStyleSheet(date_edit_style)
-        to_layout.addWidget(to_label)
-        to_layout.addWidget(to_date, 1)
+        toLayout = QHBoxLayout()
+        toLabel = QLabel("To:")
+        toLabel.setStyleSheet(dateLabelStyle)
+        toDate = QDateEdit()
+        toDate.setDate(QDate.currentDate().addDays(7))
+        toDate.setCalendarPopup(True)
+        toDate.setStyleSheet(dateEditStyle)
+        toLayout.addWidget(toLabel)
+        toLayout.addWidget(toDate, 1)
 
         # Occupancy slider
-        occupancy_layout = QHBoxLayout()
-        occupancy_label = QLabel("Occupancy:")
-        occupancy_label.setStyleSheet(date_label_style)
-        occupancy_value = QLabel("50%")
-        occupancy_value.setStyleSheet(date_label_style)
-        occupancy_layout.addWidget(occupancy_label)
-        occupancy_layout.addWidget(occupancy_value)
+        occupancyLayout = QHBoxLayout()
+        occupancyLabel = QLabel("Occupancy:")
+        occupancyLabel.setStyleSheet(dateLabelStyle)
+        occupancyValue = QLabel("50%")
+        occupancyValue.setStyleSheet(dateLabelStyle)
+        occupancyLayout.addWidget(occupancyLabel)
+        occupancyLayout.addWidget(occupancyValue)
 
-        occupancy_slider = QSlider(Qt.Orientation.Horizontal)
-        occupancy_slider.setMinimum(0)
-        occupancy_slider.setMaximum(100)
-        occupancy_slider.setValue(50)
-        occupancy_slider.setStyleSheet("QSlider::handle:horizontal {background-color: #4a6ea9;}")
-        occupancy_slider.valueChanged.connect(lambda value: occupancy_value.setText(f"{value}%"))
+        occupancySlider = QSlider(Qt.Orientation.Horizontal)
+        occupancySlider.setMinimum(0)
+        occupancySlider.setMaximum(100)
+        occupancySlider.setValue(50)
+        occupancySlider.setStyleSheet("QSlider::handle:horizontal {background-color: #4a6ea9;}")
+        occupancySlider.valueChanged.connect(lambda value: occupancyValue.setText(f"{value}%"))
 
         # Generate button
-        generate_btn = QPushButton("Generate Reservations")
-        generate_btn.setStyleSheet(
+        generateBtn = QPushButton("Generate Reservations")
+        generateBtn.setStyleSheet(
             "QPushButton {background-color: #2e8b57; color: white; font-weight: bold; padding: 8px;} "
             "QPushButton:hover {background-color: #3ba968;}"
         )
-        self.from_date = from_date
-        self.to_date = to_date
-        self.occupancy_slider = occupancy_slider
-        generate_btn.clicked.connect(lambda: self._handle_generate_btn_click())
+        self.fromDate = fromDate
+        self.toDate = toDate
+        self.occupancySlider = occupancySlider
+        generateBtn.clicked.connect(lambda: self._handleGenerateBtnClick())
 
-        gen_layout.addLayout(from_layout)
-        gen_layout.addLayout(to_layout)
-        gen_layout.addLayout(occupancy_layout)
-        gen_layout.addWidget(occupancy_slider)
-        gen_layout.addWidget(generate_btn)
+        genLayout.addLayout(fromLayout)
+        genLayout.addLayout(toLayout)
+        genLayout.addLayout(occupancyLayout)
+        genLayout.addWidget(occupancySlider)
+        genLayout.addWidget(generateBtn)
 
-        layout.addWidget(gen_content)
+        layout.addWidget(genContent)
         layout.addStretch()
 
-    def _handle_generate_btn_click(self):
-        if self.generate_reservations_callback:
-            from_date = self.from_date.date()
-            to_date = self.to_date.date()
-            occupancy = self.occupancy_slider.value()
+    def _handleGenerateBtnClick(self):
+        if self.generateReservationsCallback:
+            fromDate = self.fromDate.date()
+            toDate = self.toDate.date()
+            occupancy = self.occupancySlider.value()
 
-            self.generate_reservations_callback(from_date, to_date, occupancy)
+            self.generateReservationsCallback(fromDate, toDate, occupancy)
 
-    def update_stats(self):
+    def updateStats(self):
         if not self.controller:
             return
 
         # Update floors count
         floors = self.controller.get_all_floors()
-        self.floors_value.setText(str(len(floors)))
+        self.floorsValue.setText(str(len(floors)))
 
         # Get room count
-        total_rooms = self.controller.get_total_rooms_count()
-        self.rooms_value.setText(str(total_rooms))
+        totalRooms = self.controller.get_total_rooms_count()
+        self.roomsValue.setText(str(totalRooms))
 
         # Get reservations count
         reservations = self.controller.get_all_reservations()
-        self.reservations_value.setText(str(len(reservations)))
+        self.reservationsValue.setText(str(len(reservations)))
 
         # Get total income
-        total_income = self.controller.get_total_reservations_income()
-        self.income_value.setText(f"${total_income:,.2f}")
+        totalIncome = self.controller.get_total_reservations_income()
+        self.incomeValue.setText(f"${totalIncome:,.2f}")
