@@ -1,5 +1,5 @@
 # hotel-simulator
-Personal project. App that simulates different aspects from a hotel's lifecycle.
+Personal Project. App that simulates different aspects from a hotel's lifecycle.
 
 
 What do i want to achieve with this project?
