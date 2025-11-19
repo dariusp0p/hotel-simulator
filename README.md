@@ -1,4 +1,5 @@
-# Hotel-Reservation
+# hotel-simulator
+Personal project. App that simulates different aspects from a hotel's lifecycle.
 
 
 What do i want to achieve with this project?
