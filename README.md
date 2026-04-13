@@ -1,4 +1,5 @@
-# Hotel Simulator
+# hotel-simulator
+Personal Project. App that simulates different aspects from a hotel's lifecycle.
 
 Hotel Simulator is a PyQt6 desktop application for managing a hotel layout and its reservations. It combines a clean layered architecture, SQLite persistence, in-memory indexing, a graph-backed floor model, and an undo/redo action system.
 
